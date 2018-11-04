@@ -90,8 +90,8 @@ private[mxnet] object NDArrayMacro {
 
     val newNDArrayFunctions = {
       if (isContrib) ndarrayFunctions.filter(
-        func => func.name.startsWith("_contrib_") || !func.name.startsWith("_"))
-      else ndarrayFunctions.filterNot(_.name.startsWith("_"))
+        func => func.name.startsWith("_contrib_") || func.name.startsWith("_sparse_") || !func.name.startsWith("_"))
+      else ndarrayFunctions.filter(func => func.name.startsWith("_sparse_") || !func.name.startsWith("_"))
     }.filterNot(ele => notGenerated.contains(ele.name))
 
     val functionDefs = newNDArrayFunctions.map { ndarrayfunction =>

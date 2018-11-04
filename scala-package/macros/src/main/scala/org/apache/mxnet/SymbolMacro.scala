@@ -96,8 +96,8 @@ private[mxnet] object SymbolImplMacros {
     // Symbol.contrib.bar--> Contrib APIs
     val newSymbolFunctions = {
       if (isContrib) symbolFunctions.filter(
-        func => func.name.startsWith("_contrib_") || !func.name.startsWith("_"))
-      else symbolFunctions.filter(!_.name.startsWith("_"))
+        func => func.name.startsWith("_contrib_") || func.name.startsWith("_sparse_") || !func.name.startsWith("_"))
+      else symbolFunctions.filter(func => func.name.startsWith("_sparse_") || !func.name.startsWith("_"))
     }.filterNot(ele => notGenerated.contains(ele.name))
 
     val functionDefs = newSymbolFunctions map { symbolfunction =>

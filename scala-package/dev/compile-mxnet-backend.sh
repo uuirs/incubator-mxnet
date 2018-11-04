@@ -69,8 +69,9 @@ then
 elif [[ $PLATFORM == "linux-x86_64-cpu" ]];
 then
     echo "Building MXNet Backend on Linux CPU"
-    echo "ADD_CFLAGS += -I/usr/local/include/opencv" >> ./config.mk
-    echo "ADD_LDFLAGS += -L/usr/local/lib" >> ./config.mk
+    echo "ADD_CFLAGS += -I/usr/include/opencv" >> ./config.mk
+    echo "ADD_CFLAGS += -I/usr/include/openblas" >> ./config.mk
+    echo "ADD_LDFLAGS += -L/usr/lib64" >> ./config.mk
     echo "USE_OPENCV=1" >> ./config.mk
     echo "USE_OPENMP=1" >> ./config.mk
     echo "USE_BLAS=openblas" >> ./config.mk
