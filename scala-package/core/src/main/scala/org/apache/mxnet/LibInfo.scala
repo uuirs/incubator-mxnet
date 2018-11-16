@@ -47,6 +47,18 @@ private[mxnet] class LibInfo {
                                 delayAlloc: Int,
                                 dtype: Int,
                                 out: NDArrayHandleRef): Int
+  @native def mxNDArrayCreateSparseEx(storage_type: Int,
+                                      shape: Array[Int],
+                                      ndim: Int,
+                                      devType: Int,
+                                      devId: Int,
+                                      delayAlloc: Int,
+                                      dtype: Int,
+                                      num_aux: Int,
+                                      aux_type: Array[Int],
+                                      aux_ndims: Array[Int],
+                                      aux_shape: Array[Int],
+                                      out: NDArrayHandleRef): Int
   @native def mxNDArrayWaitAll(): Int
   @native def mxNDArrayWaitToRead(handle: NDArrayHandle): Int
   @native def mxListFunctions(functions: ListBuffer[FunctionHandle]): Int
@@ -93,6 +105,9 @@ private[mxnet] class LibInfo {
   @native def mxNDArraySyncCopyFromCPU(handle: NDArrayHandle,
                                        source: Array[MXFloat],
                                        size: Int): Int
+  @native def mxNDArraySyncCopyFromNDArray(arrayPtr: NDArrayHandle,
+                                           handleSrc: NDArrayHandle,
+                                           i: Int): Int
   @native def mxNDArrayLoad(fname: String,
                             outSize: MXUintRef,
                             handles: ArrayBuffer[NDArrayHandle],
@@ -105,6 +120,11 @@ private[mxnet] class LibInfo {
   @native def mxNDArraySaveRawBytes(handle: NDArrayHandle, buf: ArrayBuffer[Byte]): Int
   @native def mxNDArrayLoadFromRawBytes(bytes: Array[Byte], handle: NDArrayHandleRef): Int
   @native def mxNDArrayGetDType(handle: NDArrayHandle, dtype: RefInt): Int
+  @native def mxNDArrayGetSType(handle: NDArrayHandle, stype: RefInt): Int
+  @native def mxNDArrayGetDataNDArray(handle: NDArrayHandle, ndArrayHandle: NDArrayHandleRef): Int
+  @native def mxNDArrayGetAuxNDArray(handle: NDArrayHandle, i: Int, ndArrayHandle: NDArrayHandleRef): Int
+  @native def mxNDArrayGetAuxType(handle: NDArrayHandle, i: Int, auxType: RefInt): Int
+
 
   // KVStore Server
   @native def mxInitPSEnv(keys: Array[String], values: Array[String]): Int
@@ -272,6 +292,41 @@ private[mxnet] class LibInfo {
                               auxArgsHandle: Array[NDArrayHandle],
                               sharedExec: ExecutorHandle,
                               out: ExecutorHandleRef): Int
+  @native def mxExecutorSimpleBind(handle: SymbolHandle,
+                                   devType: Int,
+                                   devId: Int,
+                                   numg2cKeys: Int,
+                                   jg2cKeys: Array[String],
+                                   jg2cDevTypes: Array[Int],
+                                   jg2cDevIds: Array[Int],
+                                   providedGradReqListLen: Int,
+                                   jprovidedGradReqNames: Array[String],
+                                   jprovidedGradReqTypes: Array[String],
+                                   numProvidedArgShapes: Int,
+                                   jprovidedArgShapeNames: Array[String],
+                                   jprovidedArgShapeData: Array[Int],
+                                   jprovidedArgShapeIdx: Array[Int],
+                                   numProvidedArgDtypes: Int,
+                                   jprovidedArgDtypeNames: Array[String],
+                                   jprovidedArgDtypes: Array[Int],
+                                   numProvidedArgStypes: Int,
+                                   jprovidedArgStypeNames: Array[String],
+                                   jprovidedArgStypes: Array[Int],
+                                   numSharedArgNames: Int,
+                                   jsharedArgNameList: Array[String],
+                                   jsharedBufferLen: RefInt,
+                                   jsharedBufferNameList: Array[String],
+                                   jsharedBufferHandleList: Array[NDArrayHandle],
+                                   jupdatedSharedBufferNameList: ArrayBuffer[String],
+                                   jupdatedSharedBufferHandleList: ArrayBuffer[NDArrayHandle],
+                                   jnumInArgs: RefInt,
+                                   jinArgs: ArrayBuffer[NDArrayHandle],
+                                   jargGrads: ArrayBuffer[NDArrayHandle],
+                                   jnumAuxStates: RefInt,
+                                   jauxStates: ArrayBuffer[NDArrayHandle],
+                                   sharedExec: ExecutorHandle,
+                                   out: ExecutorHandleRef): Int
+
   // scalastyle:on parameterNum
   @native def mxSymbolSaveToFile(handle: SymbolHandle, fname: String): Int
   @native def mxSymbolCreateFromFile(fname: String, handle: SymbolHandleRef): Int

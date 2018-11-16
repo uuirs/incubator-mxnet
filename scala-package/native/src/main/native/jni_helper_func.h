@@ -63,4 +63,51 @@ void SetStringField(JNIEnv *env, jobject obj, const char *value) {
   env->SetObjectField(obj, refFid, env->NewStringUTF(value));
   env->DeleteLocalRef(refClass);
 }
+
+const char ** CreateStringArrayField(JNIEnv *env, jobjectArray objArr, size_t size) {
+
+  const char **strArr = new const char *[size];
+  for (size_t i = 0; i < size; i++) {
+    jstring jkey = reinterpret_cast<jstring>(env->GetObjectArrayElement(objArr, i));
+    const char *key = env->GetStringUTFChars(jkey, 0);
+    strArr[i] = key;
+    env->DeleteLocalRef(jkey);
+  }
+  return strArr;
+}
+
+void ReleaseStringArrayField(JNIEnv *env, jobjectArray objArr, const char **strArr, size_t size) {
+  for (size_t i = 0; i < size; i++) {
+    jstring jkey = (jstring) env->GetObjectArrayElement(objArr, i);
+    env->ReleaseStringUTFChars(jkey, strArr[i]);
+    env->DeleteLocalRef(jkey);
+  }
+  delete[] strArr;
+}
+
+void SetStringArrayField(JNIEnv *env, jobject obj, const char * const *strArr, size_t size) {
+  jclass arrayClass = env->FindClass("scala/collection/mutable/ArrayBuffer");
+  jmethodID arrayAppend = env->GetMethodID(arrayClass,
+    "$plus$eq", "(Ljava/lang/Object;)Lscala/collection/mutable/ArrayBuffer;");
+  for (size_t i = 0; i < size; ++i) {
+    jstring jtmp = env->NewStringUTF(strArr[i]);
+    env->CallObjectMethod(obj, arrayAppend, jtmp);
+    env->DeleteLocalRef(jtmp);
+  }
+}
+
+void SetLongArrayField(JNIEnv *env, jobject obj, const uint64_t *longArr, size_t size) {
+  jclass arrayClass = env->FindClass("scala/collection/mutable/ArrayBuffer");
+  jmethodID arrayAppend = env->GetMethodID(arrayClass,
+    "$plus$eq", "(Ljava/lang/Object;)Lscala/collection/mutable/ArrayBuffer;");
+  jclass longCls = env->FindClass("java/lang/Long");
+  jmethodID longConst = env->GetMethodID(longCls, "<init>", "(J)V");
+
+  for (size_t i = 0; i < size; ++i) {
+    jobject handle = env->NewObject(longCls, longConst, longArr[i]);
+    env->CallObjectMethod(obj, arrayAppend, handle);
+    env->DeleteLocalRef(handle);
+  }
+}
+
 #endif  // MXNET_JNICPP_MAIN_NATIVE_JNI_HELPER_FUNC_H_

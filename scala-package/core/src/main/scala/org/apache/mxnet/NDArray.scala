@@ -19,6 +19,8 @@ package org.apache.mxnet
 
 import java.nio.{ByteBuffer, ByteOrder}
 
+import main.scala.org.apache.mxnet.SType
+import main.scala.org.apache.mxnet.SType.SType
 import org.apache.mxnet.Base._
 import org.apache.mxnet.DType.DType
 import org.slf4j.LoggerFactory
@@ -698,6 +700,12 @@ class NDArray private[mxnet](private[mxnet] val handle: NDArrayHandle,
     val res = NDArray.empty(this.shape, ctx = this.context, dtype = dtype)
     this.copyTo(res)
     res
+  }
+
+  def stype : SType = {
+    val mxStype = new RefInt
+    checkCall(_LIB.mxNDArrayGetSType(handle, mxStype))
+    SType(mxStype.value)
   }
 
   /**

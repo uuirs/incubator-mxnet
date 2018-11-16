@@ -92,6 +92,27 @@ JNIEXPORT jint JNICALL Java_org_apache_mxnet_LibInfo_mxNDArrayCreateEx
   return ret;
 }
 
+JNIEXPORT jint JNICALL Java_org_apache_mxnet_LibInfo_mxNDArrayCreateSparseEx
+  (JNIEnv *env, jobject obj, jint storage_type, jintArray shape, jint ndim, jint devType,
+    jint devId, jint delayAlloc, jint dtype, jint num_aux, jintArray aux_type,
+    jintArray aux_ndims, jintArray aux_shape, jobject ndArrayHandle) {
+  jint *shapeArr = env->GetIntArrayElements(shape, NULL);
+  jint *auxTypeArr = env->GetIntArrayElements(aux_type, NULL);
+  jint *auxNdimsArr = env->GetIntArrayElements(aux_ndims, NULL);
+  jint *auxShapeArr = env->GetIntArrayElements(aux_shape, NULL);
+  NDArrayHandle out;
+  int ret = MXNDArrayCreateSparseEx(storage_type, reinterpret_cast<mx_uint *>(shapeArr),
+                              static_cast<mx_uint>(ndim),devType, devId, delayAlloc, dtype,
+                              static_cast<mx_uint>(num_aux),
+                              reinterpret_cast<int *>(auxTypeArr),
+                              reinterpret_cast<mx_uint *>(auxNdimsArr),
+                              reinterpret_cast<mx_uint *>(auxShapeArr),
+                              &out);
+  env->ReleaseIntArrayElements(shape, shapeArr, 0);
+  SetLongField(env, ndArrayHandle, reinterpret_cast<jlong>(out));
+  return ret;
+}
+
 JNIEXPORT jint JNICALL Java_org_apache_mxnet_LibInfo_mxNDArrayWaitAll(JNIEnv *env, jobject obj) {
   return MXNDArrayWaitAll();
 }
@@ -423,6 +444,13 @@ JNIEXPORT jint JNICALL Java_org_apache_mxnet_LibInfo_mxNDArraySyncCopyFromCPU
   return ret;
 }
 
+JNIEXPORT jint JNICALL Java_org_apache_mxnet_LibInfo_mxNDArraySyncCopyFromNDArray
+  (JNIEnv *env, jobject obj, jlong arrayPtr, jlong handleSrc, jint i) {
+  int ret = MXNDArraySyncCopyFromNDArray(reinterpret_cast<NDArrayHandle>(arrayPtr),
+                                     reinterpret_cast<NDArrayHandle>(handleSrc), i);
+  return ret;
+}
+
 JNIEXPORT jint JNICALL Java_org_apache_mxnet_LibInfo_mxNDArrayGetContext
   (JNIEnv *env, jobject obj, jlong arrayPtr, jobject devTypeId, jobject devId) {
   int outDevType;
@@ -521,6 +549,22 @@ JNIEXPORT jint JNICALL Java_org_apache_mxnet_LibInfo_mxNDArraySave
   return ret;
 }
 
+JNIEXPORT jint JNICALL Java_org_apache_mxnet_LibInfo_mxNDArrayGetDataNDArray
+  (JNIEnv * env, jobject obj, jlong jhandle, jobject ndArrayHandle) {
+  NDArrayHandle out;
+  int ret = MXNDArrayGetDataNDArray(reinterpret_cast<NDArrayHandle>(jhandle), &out);
+  SetLongField(env, ndArrayHandle, reinterpret_cast<jlong>(out));
+  return ret;
+}
+
+JNIEXPORT jint JNICALL Java_org_apache_mxnet_LibInfo_mxNDArrayGetAuxNDArray
+  (JNIEnv * env, jobject obj, jlong jhandle, jint i, jobject ndArrayHandle) {
+  NDArrayHandle out;
+  int ret = MXNDArrayGetAuxNDArray(reinterpret_cast<NDArrayHandle>(jhandle), static_cast<mx_uint>(i), &out);
+  SetLongField(env, ndArrayHandle, reinterpret_cast<jlong>(out));
+  return ret;
+}
+
 JNIEXPORT jint JNICALL Java_org_apache_mxnet_LibInfo_mxNDArrayGetDType
   (JNIEnv * env, jobject obj, jlong jhandle, jobject jdtype) {
   int dtype;
@@ -528,6 +572,25 @@ JNIEXPORT jint JNICALL Java_org_apache_mxnet_LibInfo_mxNDArrayGetDType
   SetIntField(env, jdtype, dtype);
   return ret;
 }
+
+JNIEXPORT jint JNICALL Java_org_apache_mxnet_LibInfo_mxNDArrayGetAuxType
+  (JNIEnv * env, jobject obj, jlong jhandle, jint i, jobject joutType) {
+  int out;
+  int ret = MXNDArrayGetAuxType(reinterpret_cast<NDArrayHandle>(jhandle), static_cast<mx_uint>(i), &out);
+  SetIntField(env, joutType, out);
+  return ret;
+}
+
+
+JNIEXPORT jint JNICALL Java_org_apache_mxnet_LibInfo_mxNDArrayGetSType
+  (JNIEnv * env, jobject obj, jlong jhandle, jobject jstype) {
+  int stype;
+  int ret = MXNDArrayGetStorageType(reinterpret_cast<NDArrayHandle>(jhandle), &stype);
+  SetIntField(env, jstype, stype);
+  return ret;
+}
+
+
 
 JNIEXPORT jint JNICALL Java_org_apache_mxnet_LibInfo_mxInitPSEnv
   (JNIEnv *env, jobject obj, jobjectArray jkeys, jobjectArray jvals) {
@@ -1721,6 +1784,101 @@ JNIEXPORT jint JNICALL Java_org_apache_mxnet_LibInfo_mxExecutorBindEX
   SetLongField(env, jexecOut, reinterpret_cast<jlong>(out));
   return ret;
 }
+
+JNIEXPORT jint JNICALL Java_org_apache_mxnet_LibInfo_mxExecutorSimpleBind
+  (JNIEnv *env, jobject obj, jlong symbolPtr, jint devType, jint devId,
+    jint numg2cKeys, jobjectArray jg2cKeys, jintArray jg2cDevTypes, jintArray jg2cDevIds,
+    jint providedGradReqListLen, jobjectArray jprovidedGradReqNames, jobjectArray jprovidedGradReqTypes,
+    jint numProvidedArgShapes, jobjectArray jprovidedArgShapeNames, jintArray jprovidedArgShapeData,
+            jintArray jprovidedArgShapeIdx,
+    jint numProvidedArgDtypes, jobjectArray jprovidedArgDtypeNames, jintArray jprovidedArgDtypes,
+    jint numProvidedArgStypes, jobjectArray jprovidedArgStypeNames, jintArray jprovidedArgStypes,
+    jint numSharedArgNames, jobjectArray jsharedArgNameList,
+    jobject jsharedBufferLen, jobjectArray jsharedBufferNameList, jlongArray jsharedBufferHandleList,
+    jobject jupdatedSharedBufferNameList, jobject jupdatedSharedBufferHandleList,
+    jobject jnumInArgs, jobject jinArgs, jobject jargGrads,
+    jobject jnumAuxStates, jobject jauxStates,
+    jlong jsharedExecHandle, jobject jexecOut) {
+
+  ExecutorHandle execOut = nullptr;
+  ExecutorHandle sharedExecHandle = nullptr;
+  if ((int32_t)jsharedExecHandle != 0) sharedExecHandle = reinterpret_cast<ExecutorHandle>(jsharedExecHandle);
+
+  const char **g2cKeys = CreateStringArrayField(env, jg2cKeys, numg2cKeys);
+  jint *g2cDevTypes = env->GetIntArrayElements(jg2cDevTypes, NULL);
+  jint *g2cDevIds = env->GetIntArrayElements(jg2cDevIds, NULL);
+
+  const char **providedGradReqNames = CreateStringArrayField(env, jprovidedGradReqNames, providedGradReqListLen);
+  const char **providedGradReqTypes = CreateStringArrayField(env, jprovidedGradReqTypes, providedGradReqListLen);
+
+  const char **providedArgShapeNames = CreateStringArrayField(env, jprovidedArgShapeNames, numProvidedArgShapes);
+  jint *providedArgShapeData = env->GetIntArrayElements(jprovidedArgShapeData, NULL);
+  jint *providedArgShapeIdx = env->GetIntArrayElements(jprovidedArgShapeIdx, NULL);
+
+  const char **providedArgDtypeNames = CreateStringArrayField(env, jprovidedArgDtypeNames, numProvidedArgDtypes);
+  jint *providedArgDtypes = env->GetIntArrayElements(jprovidedArgDtypes, NULL);
+
+  const char **providedArgStypeNames = CreateStringArrayField(env, jprovidedArgStypeNames, numProvidedArgStypes);
+  jint *providedArgStypes = env->GetIntArrayElements(jprovidedArgStypes, NULL);
+
+  const char **sharedArgNameList = CreateStringArrayField(env, jsharedArgNameList, numSharedArgNames);
+
+  int sharedBufferLen = GetIntField(env, jsharedBufferLen);
+  const char **sharedBufferNameList = CreateStringArrayField(env, jsharedBufferNameList, sharedBufferLen);
+  jlong *sharedBufferHandleList = env->GetLongArrayElements(jsharedBufferHandleList, NULL);
+
+  const char **updatedSharedBufferNameList = nullptr;
+  NDArrayHandle* updatedSharedBufferHandleList = nullptr;
+
+  mx_uint numInArgs = 0;
+  NDArrayHandle* inArgs = nullptr;
+  NDArrayHandle* argGrads = nullptr;
+  mx_uint numAuxStates = 0;
+  NDArrayHandle* auxStates = nullptr;
+
+  int ret = MXExecutorSimpleBind(reinterpret_cast<SymbolHandle>(symbolPtr), devType, devId,
+                            static_cast<mx_uint>(numg2cKeys), g2cKeys, g2cDevTypes, g2cDevIds,
+                            static_cast<mx_uint>(providedGradReqListLen), providedGradReqNames, providedGradReqTypes,
+                            static_cast<mx_uint>(numProvidedArgShapes), providedArgShapeNames,
+                                reinterpret_cast<mx_uint *>(providedArgShapeData),
+                                reinterpret_cast<mx_uint *>(providedArgShapeIdx),
+                            static_cast<mx_uint>(numProvidedArgDtypes), providedArgDtypeNames, providedArgDtypes,
+                            static_cast<mx_uint>(numProvidedArgStypes), providedArgStypeNames, providedArgStypes,
+                            static_cast<mx_uint>(numSharedArgNames), sharedArgNameList,
+                            &sharedBufferLen, sharedBufferNameList,
+                                reinterpret_cast<NDArrayHandle *>(sharedBufferHandleList),
+                            &updatedSharedBufferNameList, &updatedSharedBufferHandleList,
+                            &numInArgs, &inArgs, &argGrads,
+                            &numAuxStates, &auxStates,
+                            sharedExecHandle,
+                            &execOut);
+
+  SetIntField(env, jsharedBufferLen, sharedBufferLen);
+  SetStringArrayField(env, jupdatedSharedBufferNameList, updatedSharedBufferNameList, sharedBufferLen);
+  SetLongArrayField(env, jupdatedSharedBufferHandleList, reinterpret_cast<uint64_t*>(updatedSharedBufferHandleList),
+    sharedBufferLen);
+
+  SetIntField(env, jnumInArgs, numInArgs);
+  SetLongArrayField(env, jinArgs, reinterpret_cast<uint64_t*>(inArgs), numInArgs);
+  SetLongArrayField(env, jargGrads, reinterpret_cast<uint64_t*>(argGrads), numInArgs);
+
+  SetIntField(env, jnumAuxStates, numAuxStates);
+  SetLongArrayField(env, jauxStates, reinterpret_cast<uint64_t*>(auxStates), numAuxStates);
+
+  SetLongField(env, jexecOut, reinterpret_cast<jlong>(execOut));
+
+  ReleaseStringArrayField(env, jg2cKeys, g2cKeys, numg2cKeys);
+  ReleaseStringArrayField(env, jprovidedGradReqNames, providedGradReqNames, providedGradReqListLen);
+  ReleaseStringArrayField(env, jprovidedGradReqTypes, providedGradReqTypes, providedGradReqListLen);
+  ReleaseStringArrayField(env, jprovidedArgShapeNames, providedArgShapeNames, numProvidedArgShapes);
+  ReleaseStringArrayField(env, jprovidedArgDtypeNames, providedArgDtypeNames, numProvidedArgDtypes);
+  ReleaseStringArrayField(env, jprovidedArgStypeNames, providedArgStypeNames, numProvidedArgStypes);
+  ReleaseStringArrayField(env, jsharedArgNameList, sharedArgNameList, numSharedArgNames);
+  ReleaseStringArrayField(env, jsharedBufferNameList, sharedBufferNameList, sharedBufferLen);
+
+  return ret;
+}
+
 
 JNIEXPORT jint JNICALL Java_org_apache_mxnet_LibInfo_mxRandomSeed
   (JNIEnv *env, jobject obj, jint seed) {
