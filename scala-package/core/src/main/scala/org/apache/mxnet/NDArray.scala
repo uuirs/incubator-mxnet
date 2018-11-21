@@ -19,7 +19,6 @@ package org.apache.mxnet
 
 import java.nio.{ByteBuffer, ByteOrder}
 
-import org.apache.mxnet.SType
 import org.apache.mxnet.SType.SType
 import org.apache.mxnet.Base._
 import org.apache.mxnet.DType.DType

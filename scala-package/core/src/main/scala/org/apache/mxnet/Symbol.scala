@@ -567,7 +567,7 @@ class Symbol private(private[mxnet] val handle: SymbolHandle) extends WarnIfNotD
     executor.auxArrays = auxStateHandles.toArray.map(new NDArray(_, addToCollector = false))
 
     executor._ctx = new Context(ctx.deviceType, ctx.deviceId)
-    executor._gradsReq = gradReq
+    executor._gradsReq = providedGradReqTypes
     executor._group2ctx =
       if (group2ctx == null) null
       else group2ctx.map { case (key, value) =>

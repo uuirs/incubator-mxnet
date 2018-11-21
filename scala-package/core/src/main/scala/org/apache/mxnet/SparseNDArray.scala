@@ -94,32 +94,6 @@ class BaseSparseNDArray private[mxnet](private[mxnet] override val handle: NDArr
 
 
   /**
-   * Return a sliced NDArray that shares memory with current one.
-   * NDArray only support continuous slicing on axis 0
-   *
-   * @param start Starting index of slice.
-   * @param stop Finishing index of slice.
-   *
-   * @return a sliced NDArray that shares memory with current one.
-   */
-  override def slice(start: Int, stop: Int): NDArray = {
-    throw new UnsupportedOperationException("not supported for SparseNDArray")
-  }
-
-  override def slice(range: (Int, Int)): NDArray = {
-    throw new UnsupportedOperationException("not supported for SparseNDArray")
-  }
-
-  /**
-   * Return a sliced NDArray at the ith position of axis0
-   * @param i
-   * @return a sliced NDArray that shares memory with current one.
-   */
-  override def slice(i: Int): NDArray = {
-    throw new UnsupportedOperationException("not supported for SparseNDArray")
-  }
-
-  /**
    * Return a sub NDArray that shares memory with current one.
    * the first axis will be rolled up, which causes its shape different from slice(i, i+1)
    * @param idx index of sub array.
@@ -141,20 +115,7 @@ class BaseSparseNDArray private[mxnet](private[mxnet] override val handle: NDArr
    */
 
   override def asType(dtype: DType): NDArray = {
-    val res = BaseSparseNDArray.zeros(this.shape, ctx = this.context, dtype = dtype, stype = stype)
-    this.copyto(res)
-    res
-  }
-
-  /**
-    * Get storage type of current NDArray.
-    * @return class representing type of current ndarray
-    */
-
-  override def stype : SType = {
-    val mxStype = new RefInt
-    checkCall(_LIB.mxNDArrayGetSType(handle, mxStype))
-    SType(mxStype.value)
+    throw new UnsupportedOperationException("not supported for SparseNDArray")
   }
 
   def auxType(i: Int): DType = {
@@ -177,14 +138,14 @@ class BaseSparseNDArray private[mxnet](private[mxnet] override val handle: NDArr
     waitToRead()
     val hdl = new NDArrayHandleRef
     checkCall(_LIB.mxNDArrayGetDataNDArray(this.handle, hdl))
-    NDArray(hdl.value)
+    new NDArray(hdl.value)
   }
 
   def auxData(i: Int): NDArray = {
     waitToRead()
     val hdl = new NDArrayHandleRef
     checkCall(_LIB.mxNDArrayGetAuxNDArray(this.handle, i, hdl))
-    NDArray(hdl.value)
+    new NDArray(hdl.value)
   }
 
   /**
@@ -226,184 +187,141 @@ class BaseSparseNDArray private[mxnet](private[mxnet] override val handle: NDArr
    * @param value Value to set
    * @return Current NDArray
    */
-  def set(value: Float): NDArray
-
-  def set(other: NDArray): NDArray
+  override def set(value: Float): NDArray = {
+    throw new UnsupportedOperationException()
+  }
 
   override def set(other: Array[Float]): NDArray = {
     throw new UnsupportedOperationException()
   }
 
-  def +(other: NDArray): NDArray = {
-    NDArray.genericNDArrayFunctionInvoke("_plus", Seq(this, other))
+  override def +(other: NDArray): NDArray = {
+    throw new UnsupportedOperationException()  }
+
+  override def +(other: Float): NDArray = {
+    throw new UnsupportedOperationException()  }
+
+  override def +=(other: NDArray): NDArray = {
+    throw new UnsupportedOperationException()
   }
 
-  def +(other: Float): NDArray = {
-    NDArray.genericNDArrayFunctionInvoke("_plus_scalar", Seq(this, other))
+  override def +=(other: Float): NDArray = {
+    throw new UnsupportedOperationException()
   }
 
-  def +=(other: NDArray): NDArray = {
-    if (!writable) {
-      throw new IllegalArgumentException("trying to add to a readonly NDArray")
-    }
-    NDArray.genericNDArrayFunctionInvoke("_plus", Seq(this, other), Map("out" -> this))
-    this
+  override def -(other: NDArray): NDArray = {
+    throw new UnsupportedOperationException()  }
+
+  override def -(other: Float): NDArray = {
+    throw new UnsupportedOperationException()  }
+
+  override def -=(other: NDArray): NDArray = {
+    throw new UnsupportedOperationException()
   }
 
-  def +=(other: Float): NDArray = {
-    if (!writable) {
-      throw new IllegalArgumentException("trying to add to a readonly NDArray")
-    }
-    NDArray.genericNDArrayFunctionInvoke("_plus_scalar", Seq(this, other), Map("out" -> this))
-    this
+  override def -=(other: Float): NDArray = {
+    throw new UnsupportedOperationException()
+
   }
 
-  def -(other: NDArray): NDArray = {
-    NDArray.genericNDArrayFunctionInvoke("_minus", Seq(this, other))
+  override def *(other: NDArray): NDArray = {
+    throw new UnsupportedOperationException()
   }
 
-  def -(other: Float): NDArray = {
-    NDArray.genericNDArrayFunctionInvoke("_minus_scalar", Seq(this, other))
+  override def *(other: Float): NDArray = {
+    throw new UnsupportedOperationException()
   }
 
-  def -=(other: NDArray): NDArray = {
-    if (!writable) {
-      throw new IllegalArgumentException("trying to subtract from a readonly NDArray")
-    }
-    NDArray.genericNDArrayFunctionInvoke("_minus", Seq(this, other), Map("out" -> this))
-    this
+  override def unary_-(): NDArray = {
+    throw new UnsupportedOperationException()
   }
 
-  def -=(other: Float): NDArray = {
-    if (!writable) {
-      throw new IllegalArgumentException("trying to subtract from a readonly NDArray")
-    }
-    NDArray.genericNDArrayFunctionInvoke("_minus_scalar", Seq(this, other), Map("out" -> this))
-    this
+  override def *=(other: NDArray): NDArray = {
+    throw new UnsupportedOperationException()
   }
 
-  def *(other: NDArray): NDArray = {
-    NDArray.genericNDArrayFunctionInvoke("_mul", Seq(this, other))
+  override def *=(other: Float): NDArray = {
+    throw new UnsupportedOperationException()
   }
 
-  def *(other: Float): NDArray = {
-    NDArray.genericNDArrayFunctionInvoke("_mul_scalar", Seq(this, other))
+  override def /(other: NDArray): NDArray = {
+    throw new UnsupportedOperationException()
   }
 
-  def unary_-(): NDArray = {
-    NDArray.genericNDArrayFunctionInvoke("_mul_scalar", Seq(this, -1f))
+  override def /(other: Float): NDArray = {
+    throw new UnsupportedOperationException()
   }
 
-  def *=(other: NDArray): NDArray = {
-    if (!writable) {
-      throw new IllegalArgumentException("trying to multiply to a readonly NDArray")
-    }
-    NDArray.genericNDArrayFunctionInvoke("_mul", Seq(this, other), Map("out" -> this))
-    this
+  override def /=(other: NDArray): NDArray = {
+    throw new UnsupportedOperationException()
   }
 
-  def *=(other: Float): NDArray = {
-    if (!writable) {
-      throw new IllegalArgumentException("trying to multiply to a readonly NDArray")
-    }
-    NDArray.genericNDArrayFunctionInvoke("_mul_scalar", Seq(this, other), Map("out" -> this))
-    this
+  override def /=(other: Float): NDArray = {
+    throw new UnsupportedOperationException()
   }
 
-  def /(other: NDArray): NDArray = {
-    NDArray.genericNDArrayFunctionInvoke("_div", Seq(this, other))
+  override def **(other: NDArray): NDArray = {
+    throw new UnsupportedOperationException()
   }
 
-  def /(other: Float): NDArray = {
-    NDArray.genericNDArrayFunctionInvoke("_div_scalar", Seq(this, other))
+  override def **(other: Float): NDArray = {
+    throw new UnsupportedOperationException()
   }
 
-  def /=(other: NDArray): NDArray = {
-    if (!writable) {
-      throw new IllegalArgumentException("trying to divide from a readonly NDArray")
-    }
-    NDArray.genericNDArrayFunctionInvoke("_div", Seq(this, other), Map("out" -> this))
-    this
+  override def **=(other: NDArray): NDArray = {
+    throw new UnsupportedOperationException()
   }
 
-  def /=(other: Float): NDArray = {
-    if (!writable) {
-      throw new IllegalArgumentException("trying to divide from a readonly NDArray")
-    }
-    NDArray.genericNDArrayFunctionInvoke("_div_scalar", Seq(this, other), Map("out" -> this))
-    this
+  override def **=(other: Float): NDArray = {
+    throw new UnsupportedOperationException()
   }
 
-  def **(other: NDArray): NDArray = {
-    NDArray.power(this, other)
+  override def >(other: NDArray): NDArray = {
+    throw new UnsupportedOperationException()
   }
 
-  def **(other: Float): NDArray = {
-    NDArray.power(this, other)
+  override def >(other: Float): NDArray = {
+    throw new UnsupportedOperationException()
   }
 
-  def **=(other: NDArray): NDArray = {
-    NDArray.genericNDArrayFunctionInvoke("_power", Seq(this, other), Map("out" -> this))
+  override def >=(other: NDArray): NDArray = {
+    throw new UnsupportedOperationException()
   }
 
-  def **=(other: Float): NDArray = {
-    NDArray.genericNDArrayFunctionInvoke("_power_scalar", Seq(this, other), Map("out" -> this))
+  override def >=(other: Float): NDArray = {
+    throw new UnsupportedOperationException()
   }
 
-  def >(other: NDArray): NDArray = {
-    NDArray.greater(this, other)
+  override def <(other: NDArray): NDArray = {
+    throw new UnsupportedOperationException()
   }
 
-  def >(other: Float): NDArray = {
-    NDArray.greater(this, other)
+  override def <(other: Float): NDArray = {
+    throw new UnsupportedOperationException()
   }
 
-  def >=(other: NDArray): NDArray = {
-    NDArray.greaterEqual(this, other)
+  override def <=(other: NDArray): NDArray = {
+    throw new UnsupportedOperationException()
   }
 
-  def >=(other: Float): NDArray = {
-    NDArray.greaterEqual(this, other)
+  override def <=(other: Float): NDArray = {
+    throw new UnsupportedOperationException()
   }
 
-  def <(other: NDArray): NDArray = {
-    NDArray.lesser(this, other)
+  override def %(other: NDArray): NDArray = {
+    throw new UnsupportedOperationException()
   }
 
-  def <(other: Float): NDArray = {
-    NDArray.lesser(this, other)
+  override def %(other: Float): NDArray = {
+    throw new UnsupportedOperationException()
   }
 
-  def <=(other: NDArray): NDArray = {
-    NDArray.lesserEqual(this, other)
+  override def %=(other: NDArray): NDArray = {
+    throw new UnsupportedOperationException()
   }
 
-  def <=(other: Float): NDArray = {
-    NDArray.lesserEqual(this, other)
-  }
-
-  def %(other: NDArray): NDArray = {
-    NDArray.genericNDArrayFunctionInvoke("_mod", Seq(this, other))
-  }
-
-  def %(other: Float): NDArray = {
-    NDArray.genericNDArrayFunctionInvoke("_mod_scalar", Seq(this, other))
-  }
-
-  def %=(other: NDArray): NDArray = {
-    if (!writable) {
-      throw new IllegalArgumentException("trying to take modulo from a readonly NDArray")
-    }
-    NDArray.genericNDArrayFunctionInvoke("_mod", Seq(this, other), Map("out" -> this))
-    this
-  }
-
-  def %=(other: Float): NDArray = {
-    if (!writable) {
-      throw new IllegalArgumentException("trying to take modulo from a readonly NDArray")
-    }
-    NDArray.genericNDArrayFunctionInvoke("_mod_scalar", Seq(this, other), Map("out" -> this))
-    this
+  override def %=(other: Float): NDArray = {
+    throw new UnsupportedOperationException()
   }
 
   /**
@@ -441,14 +359,7 @@ class BaseSparseNDArray private[mxnet](private[mxnet] override val handle: NDArr
    * @param other Target NDArray or context we want to copy data to.
    * @return The copy target NDArray
    */
-  def copyTo(other: NDArray): NDArray = {
-    if (other.handle == this.handle) {
-      NDArray.logger.warn("copy an array to itself, is it intended ?")
-    } else {
-      NDArray.genericNDArrayFunctionInvoke("_copyto", Seq(this), Map("out" -> other))
-    }
-    other
-  }
+  def copyTo(other: NDArray): NDArray
 
   /**
    * Copy the content of current array to a new NDArray in the context.
@@ -457,7 +368,7 @@ class BaseSparseNDArray private[mxnet](private[mxnet] override val handle: NDArr
    * @return The copy target NDArray
    */
   override def copyTo(ctx: Context): NDArray = {
-    val ret = new NDArray(BaseSparseNDArray.newAllocHandle(stype, shape, ctx, delayAlloc = true, dtype, auxTypes))
+    val ret = BaseSparseNDArray.empty(stype, shape, ctx, delayAlloc = true, dtype, auxTypes)
     copyTo(ret)
   }
 
@@ -498,7 +409,7 @@ class BaseSparseNDArray private[mxnet](private[mxnet] override val handle: NDArr
 }
 object CSRNDArray extends NDArrayBase {
   def CSRNDArray(data: Array[Float], indices: Array[Int], indptr: Array[Int],
-                 shape: Shape = null, ctx: Context = Context(),
+                 shape: Shape = null, ctx: Context,
                  dtype: DType = null): NDArray = {
     val storageType = SType.CSR
     val ndData = NDArray.array(data,Shape(data.size))
@@ -508,12 +419,14 @@ object CSRNDArray extends NDArrayBase {
     val indptrType = DType.Int64
     val indiceType = DType.Int64
 
+    val context = if (ctx == null) Context.defaultCtx else ctx
+
     if (shape == null){
       shape = Shape(ndIndptr.size - 1, NDArray.api.max(ndIndices).toScalar  + 1)
     }
-    val result = BaseSparseNDArray.empty(storageType, shape, ctx, false, dtype,
+    val result = BaseSparseNDArray.empty(storageType, shape, context, false, dtype,
       List(indptrType, indiceType))
-    
+
     checkCall(_LIB.mxNDArraySyncCopyFromNDArray(result.handle, ndData.handle, -1))
     checkCall(_LIB.mxNDArraySyncCopyFromNDArray(result.handle, ndIndptr.handle, 0))
     checkCall(_LIB.mxNDArraySyncCopyFromNDArray(result.handle, ndIndices.handle, 1))
