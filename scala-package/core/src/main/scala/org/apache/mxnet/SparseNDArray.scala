@@ -37,7 +37,7 @@ import scala.ref.WeakReference
  * WARNING: it is your responsibility to clear this object through dispose().
  * </b>
  */
-object BaseSparseNDArray extends NDArrayBase {
+object BaseSparseNDArray {
 
   val STORAGE_AUX_TYPES = Map(SType.ROW_SPARSE -> List(DType.Int64), SType.CSR -> List(DType.Int64,DType.Int64))
 
@@ -167,20 +167,6 @@ class BaseSparseNDArray private[mxnet](private[mxnet] override val handle: NDArr
   override def reshape(dims: Shape): NDArray = {
     throw new UnsupportedOperationException()
   }
-
-  /**
-   * Block until all pending writes operations on current NDArray are finished.
-   * This function will return when all the pending writes to the current
-   * NDArray finishes. There can still be pending read going on when the
-   * function returns.
-   */
-  def waitToRead(): Unit
-
-  /**
-   * Get context of current NDArray.
-   * @return The context of current NDArray.
-   */
-  def context: Context
 
   /**
    * Set the values of the NDArray
@@ -354,14 +340,6 @@ class BaseSparseNDArray private[mxnet](private[mxnet] override val handle: NDArr
   }
 
   /**
-   * Copy the content of current array to other.
-   *
-   * @param other Target NDArray or context we want to copy data to.
-   * @return The copy target NDArray
-   */
-  def copyTo(other: NDArray): NDArray
-
-  /**
    * Copy the content of current array to a new NDArray in the context.
    *
    * @param ctx Target context we want to copy data to.
@@ -372,28 +350,9 @@ class BaseSparseNDArray private[mxnet](private[mxnet] override val handle: NDArr
     copyTo(ret)
   }
 
-  /**
-   * Clone the current array
-   * @return the copied NDArray in the same context
-   */
-  def copy(): NDArray
-
-  /**
-   * Get shape of current NDArray.
-   * @return an array representing shape of current ndarray
-   */
-  def shape: Shape
-
   // Get size of current NDArray.
   override def size: Int = shape.product
 
-  /**
-   * Return an `NDArray` that lives in the target context. If the array
-   * is already in that context, `self` is returned. Otherwise, a copy is made.
-   * @param context The target context we want the return value to live in.
-   * @return A copy or `self` as an `NDArray` that lives in the target context.
-   */
-  def asInContext(context: Context): NDArray
 
   override def equals(o: Any): Boolean = o match {
     case that: NDArray =>
@@ -407,7 +366,7 @@ class BaseSparseNDArray private[mxnet](private[mxnet] override val handle: NDArr
   }
 
 }
-object CSRNDArray extends NDArrayBase {
+object CSRNDArray {
   def CSRNDArray(data: Array[Float], indices: Array[Int], indptr: Array[Int],
                  shape: Shape = null, ctx: Context,
                  dtype: DType = null): NDArray = {
