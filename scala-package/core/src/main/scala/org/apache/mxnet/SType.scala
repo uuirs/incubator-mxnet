@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package main.scala.org.apache.mxnet
+package org.apache.mxnet
 
 object SType extends Enumeration {
   type SType = Value

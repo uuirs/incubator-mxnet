@@ -19,8 +19,8 @@ package org.apache.mxnet
 
 import java.nio.{ByteBuffer, ByteOrder}
 
-import main.scala.org.apache.mxnet.SType
-import main.scala.org.apache.mxnet.SType.SType
+import org.apache.mxnet.SType
+import org.apache.mxnet.SType.SType
 import org.apache.mxnet.Base._
 import org.apache.mxnet.DType.DType
 import org.slf4j.LoggerFactory
@@ -397,6 +397,12 @@ object NDArray extends NDArrayBase {
     arr
   }
 
+  def array(sourceArr: Array[Long], shape: Shape, ctx: Context = null): NDArray = {
+    val arr = empty(shape, ctx,DType.Int64)
+    arr.set(sourceArr)
+    arr
+  }
+
   /**
    * Returns evenly spaced values within a given interval.
    * Values are generated within the half-open interval [`start`, `stop`). In other
@@ -636,6 +642,12 @@ class NDArray private[mxnet](private[mxnet] val handle: NDArrayHandle,
     checkCall(_LIB.mxNDArraySyncCopyFromCPU(handle, source, source.length))
   }
 
+  private def syncCopyfrom(source: Array[Long]): Unit = {
+    require(source.length == size,
+      s"array size (${source.length}) do not match the size of NDArray ($size)")
+    checkCall(_LIB.mxNDArraySyncCopyFromCPU(handle, source, source.length))
+  }
+
   /**
    * Return a sliced NDArray that shares memory with current one.
    * NDArray only support continuous slicing on axis 0
@@ -701,6 +713,11 @@ class NDArray private[mxnet](private[mxnet] val handle: NDArrayHandle,
     this.copyTo(res)
     res
   }
+
+  /**
+    * Get storage type of current NDArray.
+    * @return class representing type of current ndarray
+    */
 
   def stype : SType = {
     val mxStype = new RefInt
@@ -768,6 +785,12 @@ class NDArray private[mxnet](private[mxnet] val handle: NDArrayHandle,
   }
 
   def set(other: Array[Float]): NDArray = {
+    require(writable, "trying to assign to a readonly NDArray")
+    syncCopyfrom(other)
+    this
+  }
+
+  def set(other: Array[Long]): NDArray = {
     require(writable, "trying to assign to a readonly NDArray")
     syncCopyfrom(other)
     this
@@ -1143,6 +1166,7 @@ private[mxnet] class NDArrayFuncReturn(private[mxnet] val arr: Array[NDArray]) {
   def set(value: Float): NDArray = head.set(value)
   def set(other: NDArray): NDArray = head.set(other)
   def set(other: Array[Float]): NDArray = head.set(other)
+  def set(other: Array[Long]): NDArray = head.set(other)
   def +(other: NDArray): NDArray = head + other
   def +(other: Float): NDArray = head + other
   def +=(other: NDArray): NDArray = head += other

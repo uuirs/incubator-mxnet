@@ -105,6 +105,9 @@ private[mxnet] class LibInfo {
   @native def mxNDArraySyncCopyFromCPU(handle: NDArrayHandle,
                                        source: Array[MXFloat],
                                        size: Int): Int
+  @native def mxNDArraySyncCopyFromCPU(handle: NDArrayHandle,
+                                       source: Array[Long],
+                                       size: Int): Int
   @native def mxNDArraySyncCopyFromNDArray(arrayPtr: NDArrayHandle,
                                            handleSrc: NDArrayHandle,
                                            i: Int): Int

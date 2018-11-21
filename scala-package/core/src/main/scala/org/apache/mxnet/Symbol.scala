@@ -19,8 +19,10 @@ package org.apache.mxnet
 
 import org.apache.mxnet.Base._
 import org.apache.mxnet.DType.DType
+import org.apache.mxnet.SType.SType
 import org.slf4j.{Logger, LoggerFactory}
 
+import scala.collection.mutable
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 
 /**
@@ -444,6 +446,134 @@ class Symbol private(private[mxnet] val handle: SymbolHandle) extends WarnIfNotD
       NDArray.zeros(shape, ctx, dtype = t)
     }
     bind(ctx, argNDArrays, gradNDArrays, gradReq, auxNDArrays, null, null)
+  }
+
+  def simpleBindEX(ctx: Context, gradReq: Any,
+                 shapeDict: Map[String, Shape],
+                 dTypeDict: Map[String, DType] = null, sTypeDict: Map[String,SType] = null,
+                 group2ctx: Map[String, Context], sharedExec: Executor)
+  : Executor = {
+
+    var numProvidedArgDTypes = 0
+    val providedArgDTypeNames = ArrayBuffer.empty[String]
+    val providedArgDTypeData = ArrayBuffer.empty[Int]
+
+    if (dTypeDict != null) {
+      for ((k, v) <- dTypeDict.toIterator) {
+        providedArgDTypeNames += k
+        providedArgDTypeData += v.id
+      }
+      numProvidedArgDTypes = providedArgDTypeData.size
+    }
+
+    var numProvidedArgSTypes = 0
+    val providedArgSTypeNames = ArrayBuffer.empty[String]
+    val providedArgSTypeData = ArrayBuffer.empty[Int]
+
+    if (sTypeDict != null) {
+      for ((k, v) <- sTypeDict.toIterator) {
+        providedArgSTypeNames += k
+        providedArgSTypeData += v.id
+      }
+      numProvidedArgSTypes = providedArgSTypeData.size
+    }
+
+    val providedArgShapeData = ArrayBuffer.empty[Int]
+    val providedArgShapeIdx = ArrayBuffer.empty[Int]
+    providedArgShapeIdx += 0
+    val providedArgShapeNames = ArrayBuffer.empty[String]
+
+    //to do
+
+    var providedReqTypeListLen = 0
+    val providedGradReqTypes = ArrayBuffer.empty[String]
+    val providedGradReqNames = ArrayBuffer.empty[String]
+
+    if (gradReq != null) {
+      gradReq match {
+        case gradReq: String =>
+          providedGradReqTypes += gradReq
+        case gradReq: Seq[String] =>
+          providedGradReqTypes ++ gradReq
+          providedReqTypeListLen = providedGradReqTypes.size
+        case gradReq: Map[String, String] =>
+          for((k, v) <- gradReq){
+            providedGradReqNames += k
+            providedGradReqTypes += v
+          }
+          providedReqTypeListLen = providedGradReqTypes.size
+      }
+    }
+    // to do
+
+    var numCtxMapKeys = 0
+    val ctxMapKeys = ArrayBuffer.empty[String]
+    val ctxMapDevTypes = ArrayBuffer.empty[Int]
+    val ctxMapDevIds = ArrayBuffer.empty[Int]
+
+    if (group2ctx != null) {
+      group2ctx.foreach { case (key, value) =>
+        ctxMapKeys += key
+        ctxMapDevTypes += value.deviceTypeid
+        ctxMapDevIds += value.deviceId
+      }
+    }
+
+    // to do
+
+    val sharedArgNameList = ArrayBuffer.empty[String]
+
+    // to do
+
+    val sharedBufferLen = new RefInt(-1)
+    val sharedBufferNames = ArrayBuffer.empty[String]
+    val sharedBufferHandles = ArrayBuffer.empty[NDArrayHandle]
+
+    // to do
+
+    val updatedSharedBufferNames = ArrayBuffer.empty[String]
+    val updatedSharedBufferHandles = ArrayBuffer.empty[NDArrayHandle]
+
+    // to do
+
+    val numInArgs = new RefInt
+    val inArgHandles = ArrayBuffer.empty[NDArrayHandle]
+    val argGradHandles = ArrayBuffer.empty[NDArrayHandle]
+    val numAuxStates = new RefInt
+    val auxStateHandles = ArrayBuffer.empty[NDArrayHandle]
+
+    val execHandle = new ExecutorHandleRef
+    val sharedHadle = 0L
+
+
+    checkCall(_LIB.mxExecutorSimpleBind(handle,
+      ctx.deviceTypeid, ctx.deviceId,
+      numCtxMapKeys, ctxMapKeys.toArray, ctxMapDevTypes.toArray, ctxMapDevIds.toArray,
+      providedReqTypeListLen, providedGradReqNames.toArray, providedGradReqTypes.toArray,
+      providedArgShapeNames.size, providedArgShapeNames.toArray, providedArgShapeData.toArray, providedArgShapeIdx.toArray,
+      numProvidedArgDTypes, providedArgDTypeNames.toArray, providedArgDTypeData.toArray,
+      numProvidedArgSTypes, providedArgSTypeNames.toArray, providedArgSTypeData.toArray,
+      sharedArgNameList.size, sharedArgNameList.toArray,
+      sharedBufferLen, sharedBufferNames.toArray, sharedBufferHandles.toArray,
+      updatedSharedBufferNames, updatedSharedBufferHandles,
+      numInArgs, inArgHandles, argGradHandles,
+      numAuxStates, auxStateHandles,
+      sharedHadle,
+      execHandle
+      ))
+    val executor = new Executor(execHandle.value, this.clone())
+    executor.argArrays = inArgHandles.toArray.map(new NDArray(_, addToCollector = false))
+    executor.gradArrays = argGradHandles.toArray.map(new NDArray(_, addToCollector = false))
+    executor.auxArrays = auxStateHandles.toArray.map(new NDArray(_, addToCollector = false))
+
+    executor._ctx = new Context(ctx.deviceType, ctx.deviceId)
+    executor._gradsReq = gradReq
+    executor._group2ctx =
+      if (group2ctx == null) null
+      else group2ctx.map { case (key, value) =>
+        key -> new Context(value.deviceType, value.deviceId)
+      }
+    executor
   }
 
   /**
@@ -980,7 +1110,7 @@ object Symbol extends SymbolBase {
    */
   def Variable(name: String, attr: Map[String, String] = null, shape: Shape = null,
       lrMult: Option[Float] = None, wdMult: Option[Float] = None, dType: DType = null,
-      kwargs: Map[String, String] = Map.empty[String, String]): Symbol = {
+               sType: SType = null, kwargs: Map[String, String] = Map.empty[String, String]): Symbol = {
     val handle = new SymbolHandleRef
     checkCall(_LIB.mxSymbolCreateVariable(name, handle))
     val sym = new Symbol(handle.value)
@@ -989,6 +1119,7 @@ object Symbol extends SymbolBase {
     if (lrMult != None) tmpAttr += "__lr_mult__" -> lrMult.get.toString
     if (wdMult != None) tmpAttr += "__wd_mult__" -> wdMult.get.toString
     if (dType != null) tmpAttr += "__dtype__" -> dType.id.toString
+    if (sType != null) tmpAttr += "__storage_type__" -> sType.id.toString
     for ((k, v) <- kwargs) {
       require(k.startsWith("__") && k.endsWith("__"),
         s"Attribute name=$k is not supported. " +

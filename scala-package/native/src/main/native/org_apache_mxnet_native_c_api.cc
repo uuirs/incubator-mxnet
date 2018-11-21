@@ -444,6 +444,15 @@ JNIEXPORT jint JNICALL Java_org_apache_mxnet_LibInfo_mxNDArraySyncCopyFromCPU
   return ret;
 }
 
+JNIEXPORT jint JNICALL Java_org_apache_mxnet_LibInfo_mxNDArraySyncCopyFromCPU
+  (JNIEnv *env, jobject obj, jlong arrayPtr, jlongArray sourceArr, jint arrSize) {
+  jlong *sourcePtr = env->GetlongArrayElements(sourceArr, NULL);
+  int ret = MXNDArraySyncCopyFromCPU(reinterpret_cast<NDArrayHandle>(arrayPtr),
+                                     static_cast<void *>(sourcePtr), arrSize);
+  env->ReleaseLongArrayElements(sourceArr, sourcePtr, 0);
+  return ret;
+}
+
 JNIEXPORT jint JNICALL Java_org_apache_mxnet_LibInfo_mxNDArraySyncCopyFromNDArray
   (JNIEnv *env, jobject obj, jlong arrayPtr, jlong handleSrc, jint i) {
   int ret = MXNDArraySyncCopyFromNDArray(reinterpret_cast<NDArrayHandle>(arrayPtr),
