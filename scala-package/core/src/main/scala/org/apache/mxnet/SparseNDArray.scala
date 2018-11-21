@@ -421,10 +421,9 @@ object CSRNDArray extends NDArrayBase {
 
     val context = if (ctx == null) Context.defaultCtx else ctx
 
-    if (shape == null){
-      shape = Shape(ndIndptr.size - 1, NDArray.api.max(ndIndices).toScalar  + 1)
-    }
-    val result = BaseSparseNDArray.empty(storageType, shape, context, false, dtype,
+    val  dataShape = if (shape != null) shape else Shape(ndIndptr.size - 1, NDArray.api.max(ndIndices).toScalar  + 1)
+
+    val result = BaseSparseNDArray.empty(storageType, dataShape, context, false, dtype,
       List(indptrType, indiceType))
 
     checkCall(_LIB.mxNDArraySyncCopyFromNDArray(result.handle, ndData.handle, -1))
