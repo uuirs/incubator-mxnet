@@ -412,9 +412,9 @@ object CSRNDArray extends NDArrayBase {
                  shape: Shape = null, ctx: Context,
                  dtype: DType = null): NDArray = {
     val storageType = SType.CSR
-    val ndData = NDArray.array(data,Shape(data.size))
-    val ndIndices = NDArray.array(indices.map(_.toLong), Shape(indices.size))
-    val ndIndptr = NDArray.array(indptr.map(_.toLong), Shape(indptr.size))
+    val ndData = NDArray.array(data, Shape(data.size))
+    val ndIndices = NDArray.array(indices.map(_.toLong), Shape(indices.size), ctx)
+    val ndIndptr = NDArray.array(indptr.map(_.toLong), Shape(indptr.size), ctx)
 
     val indptrType = DType.Int64
     val indiceType = DType.Int64

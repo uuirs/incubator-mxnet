@@ -396,7 +396,7 @@ object NDArray extends NDArrayBase {
     arr
   }
 
-  def array(sourceArr: Array[Long], shape: Shape, ctx: Context = null): NDArray = {
+  def array(sourceArr: Array[Long], shape: Shape, ctx: Context): NDArray = {
     val arr = empty(shape, ctx,DType.Int64)
     arr.set(sourceArr)
     arr
