@@ -483,7 +483,11 @@ class Symbol private(private[mxnet] val handle: SymbolHandle) extends WarnIfNotD
     providedArgShapeIdx += 0
     val providedArgShapeNames = ArrayBuffer.empty[String]
 
-    //to do
+    for((k, v) <- shapeDict) {
+      providedArgShapeData ++= v.toArray
+      providedArgShapeNames += k
+      providedArgShapeIdx += providedArgShapeData.size
+    }
 
     var providedReqTypeListLen = 0
     val providedGradReqTypes = ArrayBuffer.empty[String]
@@ -494,7 +498,7 @@ class Symbol private(private[mxnet] val handle: SymbolHandle) extends WarnIfNotD
         case gradReq: String =>
           providedGradReqTypes += gradReq
         case gradReq: Seq[String] =>
-          providedGradReqTypes ++ gradReq
+          providedGradReqTypes ++= gradReq
           providedReqTypeListLen = providedGradReqTypes.size
         case gradReq: Map[String, String] =>
           for((k, v) <- gradReq){
@@ -517,9 +521,9 @@ class Symbol private(private[mxnet] val handle: SymbolHandle) extends WarnIfNotD
         ctxMapDevTypes += value.deviceTypeid
         ctxMapDevIds += value.deviceId
       }
+      numCtxMapKeys = ctxMapKeys.size
     }
 
-    // to do
 
     val sharedArgNameList = ArrayBuffer.empty[String]
 
@@ -543,7 +547,7 @@ class Symbol private(private[mxnet] val handle: SymbolHandle) extends WarnIfNotD
     val auxStateHandles = ArrayBuffer.empty[NDArrayHandle]
 
     val execHandle = new ExecutorHandleRef
-    val sharedHadle = 0L
+    val sharedHandle = 0L
 
 
     checkCall(_LIB.mxExecutorSimpleBind(handle,
@@ -558,7 +562,7 @@ class Symbol private(private[mxnet] val handle: SymbolHandle) extends WarnIfNotD
       updatedSharedBufferNames, updatedSharedBufferHandles,
       numInArgs, inArgHandles, argGradHandles,
       numAuxStates, auxStateHandles,
-      sharedHadle,
+      sharedHandle,
       execHandle
       ))
     val executor = new Executor(execHandle.value, this.clone())

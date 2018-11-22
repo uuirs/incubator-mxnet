@@ -371,7 +371,43 @@ private[mxnet] object ExecutorManager {
     sym.bind(ctx = ctx, args = argArrays.toSeq, argsGrad = gradArrays.toMap, gradsReq = gradReq,
       auxStates = auxArrays, group2ctx = null, sharedExec = baseExec)
   }
+
+  private[mxnet] def bindExecEX(sym: Symbol, ctx: Context, inputShapes: Map[String, Shape],
+                              paramNames: Set[String], needGrad: Boolean = false,
+                              grads: Set[String] = null, baseExec: Executor = null,
+                              sharedDataArrays: mutable.Map[String, NDArray] = null,
+                              inputTypes: ListMap[String, DType] = null) = {
+    val (argShape, _, auxShape) = sym.inferShape(inputShapes)
+    require(argShape != null)
+    val inputTypesUpdate =
+      if (inputTypes == null) {
+        inputShapes.map { case (key, _) => (key, Base.MX_REAL_TYPE) }
+      } else {
+        inputTypes
+      }
+    val (argTypes, _, auxTypes) = sym.inferType(inputTypesUpdate)
+    require(argTypes != null)
+
+    val argNames = sym.listArguments()
+
+    val gradSet: Set[String] =
+      if (!needGrad) {
+        Set.empty[String]
+      } else if (grads == null) {
+        argNames.toSet -- inputShapes.keySet
+      } else {
+        grads
+      }
+
+    val gradReq = argNames.map { name =>
+      if (gradSet.contains(name)) name -> "write"
+      else name -> "null"
+    }(collection.breakOut): Map[String, String]
+
+    sym.simpleBindEX(ctx = ctx, gradReq, group2ctx = null, sharedExec = baseExec)
+  }
 }
+
 
 /**
  * A group of executors living on different devices, for data parallel.
@@ -417,7 +453,7 @@ private class DataParallelExecutorGroup private(sym: Symbol,
           name -> (Shape(slices(i)._2 - slices(i)._1) ++ shape.slice(1, shape.length))
         }
       val sharedExec: Executor = if (sharedGroup == null) null else sharedGroup.trainExecs(i)
-      ExecutorManager.bindExec(sym, ctxi, dataShapes, paramNamesComb,
+      ExecutorManager.bindExecEX(sym, ctxi, dataShapes, paramNamesComb,
         needGrad = true, baseExec = sharedExec,
         sharedDataArrays = sharedDataArrays(i))
     }
