@@ -26,6 +26,7 @@ import org.apache.mxnet.optimizer.SGD
 import org.slf4j.LoggerFactory
 
 import scala.annotation.varargs
+import scala.collection.mutable.ArrayBuffer
 
 /**
  * Module is a basic module that wrap a `Symbol`. It is functionally the same
@@ -293,6 +294,35 @@ class Module(symbolVar: Symbol,
       // if the parameters are already initialized, we are re-binding
       // so automatically copy the already initialized params
       execGroup.setParams(argParams, auxParams)
+    } else {
+      require(argParams == null && auxParams == null)
+
+      val paramArr = ArrayBuffer.empty[NDArray]
+
+      for (x <- execGroup.paramArrays) {
+        paramArr += NDArray.api.zeros_like(Some(x(0)))
+      }
+      argParams = paramNames.zip(paramArr).toMap
+
+      val auxArr = ArrayBuffer.empty[NDArray]
+
+      for (x <- execGroup.auxArrays) {
+        auxArr += NDArray.api.zeros_like(Some(x(0)))
+      }
+      auxParams = auxNames.zip(auxArr).toMap
+        /*
+      val param_arrays = [
+      NDArray.zeros(shape=x[0].shape, dtype=x[0].dtype, stype=x[0].stype)
+      for x in self._exec_group.param_arrays
+      ]
+      self._arg_params = {name:arr for name, arr in zip(self._param_names, param_arrays)}
+
+      aux_arrays = [
+      zeros(x[0].shape, dtype=x[0].dtype)
+      for x in self._exec_group.aux_arrays
+      ]
+      self._aux_params = {name:arr for name, arr in zip(self._aux_names, aux_arrays)}
+      */
     }
 
     sharedModule.foreach {
