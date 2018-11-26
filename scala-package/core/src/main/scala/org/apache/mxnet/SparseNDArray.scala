@@ -382,7 +382,7 @@ object CSRNDArray {
     val context = if (ctx == null) Context.defaultCtx else ctx
 
     val  dataShape = if (shape != null) shape else
-      Shape(ndIndptr.size - 1, NDArray.api.max(ndIndices).internal.toIntArray(0)  + 1)
+      Shape(ndIndptr.size - 1, NDArray.api.max(ndIndices).get.internal.toIntArray(0)  + 1)
 
     val result = BaseSparseNDArray.empty(storageType, dataShape, context, false, dtype,
       List(indptrType, indiceType))
