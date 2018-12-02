@@ -1216,6 +1216,7 @@ private[mxnet] class NDArrayInternal (private val internal: Array[Byte], private
       case DType.Float32 => units.map(wrapBytes(_).getFloat.toDouble)
       case DType.Float64 => units.map(wrapBytes(_).getDouble)
       case DType.Int32 => units.map(wrapBytes(_).getInt.toDouble)
+      case DType.Int64 => units.map(wrapBytes(_).getLong.toDouble)
       case DType.UInt8 => internal.map(_.toDouble)
     }
   }
@@ -1225,6 +1226,7 @@ private[mxnet] class NDArrayInternal (private val internal: Array[Byte], private
       case DType.Float32 => units.map(wrapBytes(_).getFloat)
       case DType.Float64 => units.map(wrapBytes(_).getDouble.toFloat)
       case DType.Int32 => units.map(wrapBytes(_).getInt.toFloat)
+      case DType.Int64 => units.map(wrapBytes(_).getLong.toFloat)
       case DType.UInt8 => internal.map(_.toFloat)
     }
   }
@@ -1234,6 +1236,7 @@ private[mxnet] class NDArrayInternal (private val internal: Array[Byte], private
       case DType.Float32 => units.map(wrapBytes(_).getFloat.toInt)
       case DType.Float64 => units.map(wrapBytes(_).getDouble.toInt)
       case DType.Int32 => units.map(wrapBytes(_).getInt)
+      case DType.Int64 => units.map(wrapBytes(_).getLong.toInt)
       case DType.UInt8 => internal.map(_.toInt)
     }
   }
@@ -1243,7 +1246,18 @@ private[mxnet] class NDArrayInternal (private val internal: Array[Byte], private
       case DType.Float16 | DType.Float32 => units.map(wrapBytes(_).getFloat.toByte)
       case DType.Float64 => units.map(wrapBytes(_).getDouble.toByte)
       case DType.Int32 => units.map(wrapBytes(_).getInt.toByte)
+      case DType.Int64 => units.map(wrapBytes(_).getLong.toByte)
       case DType.UInt8 => internal.clone()
+    }
+  }
+  def toLongArray: Array[Long] = {
+    require(dtype != DType.Float16, "Currently cannot convert float16 to native numerical types")
+    dtype match {
+      case DType.Float16 | DType.Float32 => units.map(wrapBytes(_).getFloat.toLong)
+      case DType.Float64 => units.map(wrapBytes(_).getDouble.toLong)
+      case DType.Int32 => units.map(wrapBytes(_).getInt.toLong)
+      case DType.Int64 => units.map(wrapBytes(_).getLong)
+      case DType.UInt8 => internal.map(_.toLong)
     }
   }
 
