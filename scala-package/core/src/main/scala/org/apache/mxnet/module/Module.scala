@@ -300,14 +300,14 @@ class Module(symbolVar: Symbol,
       val paramArr = ArrayBuffer.empty[NDArray]
 
       for (x <- execGroup.paramArrays) {
-        paramArr += NDArray.api.zeros_like(Some(x(0)))
+        paramArr += NDArray.api.zeros_like(x(0))
       }
       argParams = paramNames.zip(paramArr).toMap
 
       val auxArr = ArrayBuffer.empty[NDArray]
 
       for (x <- execGroup.auxArrays) {
-        auxArr += NDArray.api.zeros_like(Some(x(0)))
+        auxArr += NDArray.api.zeros_like(x(0))
       }
       auxParams = auxNames.zip(auxArr).toMap
         /*

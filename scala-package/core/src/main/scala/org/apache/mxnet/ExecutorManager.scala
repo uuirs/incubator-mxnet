@@ -404,7 +404,7 @@ private[mxnet] object ExecutorManager {
       else name -> "null"
     }(collection.breakOut): Map[String, String]
 
-    sym.simpleBindEX(ctx = ctx, gradReq, group2ctx = null, sharedExec = baseExec)
+    sym.simpleBindEX(ctx = ctx, gradReq, inputShapes, group2ctx = null, sharedExec = baseExec)
   }
 }
 
