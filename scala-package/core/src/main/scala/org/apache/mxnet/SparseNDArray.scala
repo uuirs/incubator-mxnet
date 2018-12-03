@@ -387,7 +387,7 @@ object CSRNDArray {
     val auxShapes = List(ndIndices.shape, ndIndptr.shape)
 
     val result = BaseSparseNDArray.empty(storageType, dataShape, context, false, dtype,
-      List(indptrType, indiceType), aux_shapes)
+      List(indptrType, indiceType), auxShapes)
 
     checkCall(_LIB.mxNDArraySyncCopyFromNDArray(result.handle, ndData.handle, -1))
     checkCall(_LIB.mxNDArraySyncCopyFromNDArray(result.handle, ndIndptr.handle, 0))
@@ -423,7 +423,7 @@ object RowSparseNDArray {
       Shape(indices(indices.length - 1) + 1, 1)
 
     val result = BaseSparseNDArray.empty(storageType, dataShape, context, false, dtype,
-      List(indiceType))
+      List(indiceType), List(ndIndices.shape))
 
     checkCall(_LIB.mxNDArraySyncCopyFromNDArray(result.handle, ndData.handle, -1))
     checkCall(_LIB.mxNDArraySyncCopyFromNDArray(result.handle, ndIndices.handle, 0))
