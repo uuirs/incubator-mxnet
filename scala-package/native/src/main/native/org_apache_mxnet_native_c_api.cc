@@ -102,13 +102,17 @@ JNIEXPORT jint JNICALL Java_org_apache_mxnet_LibInfo_mxNDArrayCreateSparseEx
   jint *auxShapeArr = env->GetIntArrayElements(aux_shape, NULL);
   NDArrayHandle out;
   int ret = MXNDArrayCreateSparseEx(storage_type, reinterpret_cast<mx_uint *>(shapeArr),
-                              static_cast<mx_uint>(ndim),devType, devId, delayAlloc, dtype,
+                              static_cast<mx_uint>(ndim), devType, devId, delayAlloc, dtype,
                               static_cast<mx_uint>(num_aux),
                               reinterpret_cast<int *>(auxTypeArr),
                               reinterpret_cast<mx_uint *>(auxNdimsArr),
-                              reinterpret_cast<mx_uint *>(auxShapeArr),
+                              reinterpret_cast<const mx_uint *>(auxShapeArr),
                               &out);
   env->ReleaseIntArrayElements(shape, shapeArr, 0);
+  env->ReleaseIntArrayElements(aux_type, auxTypeArr, 0);
+  env->ReleaseIntArrayElements(aux_ndims, auxNdimsArr, 0);
+  env->ReleaseIntArrayElements(auxShapeArr, aux_shape, 0);
+
   SetLongField(env, ndArrayHandle, reinterpret_cast<jlong>(out));
   return ret;
 }

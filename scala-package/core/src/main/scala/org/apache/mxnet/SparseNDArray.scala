@@ -70,9 +70,9 @@ object BaseSparseNDArray {
   }
 
   def empty(stype: SType, shape: Shape, ctx: Context, delayAlloc: Boolean = false, dtype: DType = DType.Float32,
-            auxTypes: List[DType]): NDArray = {
+            auxTypes: List[DType], auxShape: List[Shape] = null): NDArray = {
     new NDArray(handle = newAllocHandle(stype, shape, ctx, delayAlloc, dtype,
-      auxTypes, null))
+      auxTypes, auxShape))
   }
 
 }
@@ -370,7 +370,7 @@ class BaseSparseNDArray private[mxnet](private[mxnet] override val handle: NDArr
 object CSRNDArray {
   def CSRNDArray(data: Array[Float], indices: Array[Int], indptr: Array[Int],
                  shape: Shape = null, ctx: Context = null,
-                 dtype: DType = null): NDArray = {
+                 dtype: DType = DType.Float32): NDArray = {
     val storageType = SType.CSR
     val ndData = NDArray.array(data, Shape(data.size))
     val ndIndices = NDArray.array(indices.map(_.toLong), Shape(indices.size), ctx)
@@ -382,10 +382,12 @@ object CSRNDArray {
     val context = if (ctx == null) Context.defaultCtx else ctx
 
     val  dataShape = if (shape != null) shape else
-      Shape(ndIndptr.size - 1, NDArray.api.max(ndIndices).get.internal.toLongArray(0)  + 1)
+      Shape(ndIndptr.size - 1, NDArray.api.max(ndIndices).get.internal.toLongArray(0).toInt  + 1)
+
+    val auxShapes = List(ndIndices.shape, ndIndptr.shape)
 
     val result = BaseSparseNDArray.empty(storageType, dataShape, context, false, dtype,
-      List(indptrType, indiceType))
+      List(indptrType, indiceType), aux_shapes)
 
     checkCall(_LIB.mxNDArraySyncCopyFromNDArray(result.handle, ndData.handle, -1))
     checkCall(_LIB.mxNDArraySyncCopyFromNDArray(result.handle, ndIndptr.handle, 0))
