@@ -369,7 +369,7 @@ class BaseSparseNDArray private[mxnet](private[mxnet] override val handle: NDArr
 }
 object CSRNDArray {
   def CSRNDArray(data: Array[Float], indices: Array[Int], indptr: Array[Int],
-                 shape: Shape = null, ctx: Context,
+                 shape: Shape = null, ctx: Context = null,
                  dtype: DType = null): NDArray = {
     val storageType = SType.CSR
     val ndData = NDArray.array(data, Shape(data.size))
@@ -382,7 +382,7 @@ object CSRNDArray {
     val context = if (ctx == null) Context.defaultCtx else ctx
 
     val  dataShape = if (shape != null) shape else
-      Shape(ndIndptr.size - 1, NDArray.api.max(ndIndices).get.internal.toIntArray(0)  + 1)
+      Shape(ndIndptr.size - 1, NDArray.api.max(ndIndices).get.internal.toLongArray(0)  + 1)
 
     val result = BaseSparseNDArray.empty(storageType, dataShape, context, false, dtype,
       List(indptrType, indiceType))
@@ -407,7 +407,7 @@ class CSRNDArray private[mxnet](private[mxnet] override val handle: NDArrayHandl
 
 object RowSparseNDArray {
   def RowSparseNDArray(data: Array[Float], indices: Array[Int],
-                 shape: Shape = null, ctx: Context,
+                 shape: Shape = null, ctx: Context = null,
                  dtype: DType = null): NDArray = {
     val storageType = SType.ROW_SPARSE
     val ndData = NDArray.array(data, Shape(data.size))
