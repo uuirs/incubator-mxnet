@@ -308,13 +308,13 @@ class FeedForward private(
           kv: KVStore,
           epochEndCallback: EpochEndCallback,
           batchEndCallback: BatchEndCallback, logger: Logger,
-          workLoadList: Seq[Float], warmStart: Boolean): Unit = {
+          workLoadList: Seq[Float]): Unit = {
     // init params first to allow kv store use _argParams to decide its type
     initSymbolParams(trainData)
     // create kvstore
     val (kvStore, updateOnKVStore) = Model.createKVStore(kv)
     fit(trainData, evalData, evalMetric, kvStore, updateOnKVStore,
-      epochEndCallback, batchEndCallback, logger, workLoadList, warmStart)
+      epochEndCallback, batchEndCallback, logger, workLoadList)
   }
 
   def fit(trainData: DataIter, evalData: DataIter, evalMetric: EvalMetric,
@@ -322,7 +322,7 @@ class FeedForward private(
           epochEndCallback: EpochEndCallback,
           batchEndCallback: BatchEndCallback): Unit = {
     fit(trainData, evalData, evalMetric, kvStore, epochEndCallback,
-        batchEndCallback, FeedForward.logger, null, false)
+        batchEndCallback, FeedForward.logger, null)
   }
 
   def fit(trainData: DataIter, evalData: DataIter,
@@ -332,6 +332,14 @@ class FeedForward private(
 
   def fit(trainData: DataIter, evalData: DataIter, kvStore: KVStore): Unit = {
     fit(trainData, evalData, new Accuracy(), kvStore)
+  }
+
+  def fit(trainData: DataIter, evalData: DataIter, kv: KVStore, warmStart: Boolean): Unit = {
+    initSymbolParams(trainData)
+    // create kvstore
+    val (kvStore, updateOnKVStore) = Model.createKVStore(kv)
+    fit(trainData, evalData, new Accuracy(), kvStore, updateOnKVStore,
+      epochEndCallback = null, batchEndCallback = null, FeedForward.logger, workLoadList = null, warmStart)
   }
 
   private def initSymbolParams(trainData: DataIter)
