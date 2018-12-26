@@ -347,7 +347,7 @@ class FeedForward private(
                   kvStore: Option[KVStore], updateOnKVStore: Boolean,
                   epochEndCallback: EpochEndCallback = null,
                   batchEndCallback: BatchEndCallback = null, logger: Logger = FeedForward.logger,
-                  workLoadList: Seq[Float] = null): Unit = {
+                  workLoadList: Seq[Float] = null, warmStart: Boolean = false): Unit = {
     require(evalMetric != null, "evalMetric cannot be null")
     val (argNames, paramNames, auxNames) = initSymbolParams(trainData)
 
@@ -386,7 +386,8 @@ class FeedForward private(
       batchEndCallback = Option(batchEndCallback),
       workLoadList = workLoadList,
       monitor = monitor,
-      symGen = symGen)
+      symGen = symGen,
+      warmStart = warmStart)
   }
 
   /**

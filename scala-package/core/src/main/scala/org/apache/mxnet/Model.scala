@@ -257,7 +257,8 @@ object Model {
                                       batchEndCallback: Option[BatchEndCallback] = None,
                                       workLoadList: Seq[Float] = Nil,
                                       monitor: Option[Monitor] = None,
-                                      symGen: SymbolGenerator = null): Unit = {
+                                      symGen: SymbolGenerator = null,
+                                      warmStart: Boolean = false): Unit = {
     val executorManager = new DataParallelExecutorManager(
         symbol = symbol,
         symGen = symGen,
@@ -273,11 +274,12 @@ object Model {
 
     // updater for updateOnKVStore = false
     val updaterLocal = Optimizer.getUpdater(optimizer)
-
-    kvStore.foreach(initializeKVStore(_, executorManager.paramArrays,
-      argParams, executorManager.paramNames, updateOnKVStore))
-    if (updateOnKVStore) {
-      kvStore.foreach(_.setOptimizer(optimizer))
+    if (!warmStart){
+      kvStore.foreach(initializeKVStore(_, executorManager.paramArrays,
+        argParams, executorManager.paramNames, updateOnKVStore))
+      if (updateOnKVStore) {
+        kvStore.foreach(_.setOptimizer(optimizer))
+      }
     }
 
     // Now start training
