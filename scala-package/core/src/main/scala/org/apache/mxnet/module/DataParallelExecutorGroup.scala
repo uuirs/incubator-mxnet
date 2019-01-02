@@ -375,7 +375,7 @@ class DataParallelExecutorGroup private[module](
       }
     } else {
       execs = (0 until contexts.length).map(i =>
-        bindIthExec(i, dataShapes, labelShapes, sharedGroup)
+        bindIthExecEX(i, dataShapes, labelShapes, sharedGroup)
       ).toArray
     }
 
