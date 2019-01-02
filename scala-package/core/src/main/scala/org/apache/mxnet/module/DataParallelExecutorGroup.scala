@@ -697,6 +697,29 @@ class DataParallelExecutorGroup private[module](
       sharedExec = sharedExec.orNull)
   }
 
+  private def bindIthExecEX(i: Int, dataShapes: Seq[DataDesc],
+                          labelShapes: Option[Seq[DataDesc]],
+                          sharedGroup: Option[DataParallelExecutorGroup]): Executor = {
+    val dataShapesSliced = slicedShape(dataShapes, i, dataLayouts)
+    val labelShapesSliced = labelShapes.map(slicedShape(_, i, labelLayouts))
+    val sharedExec = sharedGroup.map(_.execs(i))
+    val context = contexts(i)
+    val sharedDataArrays = this.sharedDataArrays(i)
+
+    val inputShapes
+    = dataShapesSliced.toMap ++ labelShapesSliced.getOrElse(Map.empty[String, Shape])
+
+    val inputTypesGot = inputTypes.getOrElse(inputShapes.map { case (k, v) =>
+      (k, Base.MX_REAL_TYPE)
+    })
+
+    val argArrays = ArrayBuffer.empty[NDArray]
+    val gradArrayMap = mutable.HashMap.empty[String, NDArray]
+
+    symbol.simpleBindEX(ctx = context, gradReq = gradReqRun, shapeDict = inputShapes, dTypeDict = inputTypesGot,
+      sTypeDict = null, sharedArgNames = argNames, sharedBuffer = sharedDataArrays.toMap,
+      group2ctx = null, sharedExec = sharedExec.orNull)
+  }
   /**
    * Get the sliced shapes for the i-th executor.
    * @param shapes : The original (name, shape) pairs.

@@ -449,9 +449,11 @@ class Symbol private(private[mxnet] val handle: SymbolHandle) extends WarnIfNotD
   }
 
   def simpleBindEX(ctx: Context, gradReq: Any,
-                 shapeDict: Map[String, Shape],
-                 dTypeDict: Map[String, DType] = null, sTypeDict: Map[String,SType] = null,
-                 group2ctx: Map[String, Context], sharedExec: Executor)
+                   shapeDict: Map[String, Shape],
+                   dTypeDict: Map[String, DType], sTypeDict: Map[String,SType] = null,
+                   group2ctx: Map[String, Context],
+                   sharedArgNames: IndexedSeq[String],
+                   sharedExec: Executor, sharedBuffer: Map[String, NDArray])
   : Executor = {
 
     var numProvidedArgDTypes = 0

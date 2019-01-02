@@ -223,10 +223,11 @@ object NDArray extends NDArrayBase {
    *
    * @return The created NDArray.
    */
-  def zeros(shape: Shape, ctx: Context = null, dtype: DType = Base.MX_REAL_TYPE): NDArray = {
-    val arr = empty(shape, ctx, dtype)
-    arr.set(0f)
-    arr
+  def zeros(shape: Shape, ctx: Context = null, dtype: DType = Base.MX_REAL_TYPE, stype: SType = SType.DEFAULT): NDArray = {
+    val curCtx = if (ctx != null) ctx else Context.cpu()
+    val params = Map("shape" -> Shape.toString, "ctx" -> curCtx.toString,
+      "dtype" -> dtype.toString, "stype" -> stype.toString)
+    NDArray.genericNDArrayFunctionInvoke("_zeros", Seq(), params)(0)
   }
 
   def zeros(shape: Int *): NDArray = zeros(Shape(shape: _*))
@@ -418,7 +419,7 @@ object NDArray extends NDArrayBase {
     repeat: Int = 1, ctx: Context = Context.defaultCtx,
     dType: DType = Base.MX_REAL_TYPE): NDArray = {
     val params = Map("start" -> start, "step" -> step,
-      "repeat" -> repeat, "ctx" -> ctx.toString, "dtype" -> dType.toString())
+      "repeat" -> repeat, "ctx" -> ctx.toString, "dtype" -> dType.toString)
     val fParams = if (stop == None) params else params ++ Map("stop" -> stop.get)
     NDArray.genericNDArrayFunctionInvoke("_arange", Seq(), fParams)(0)
   }
