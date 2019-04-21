@@ -401,7 +401,7 @@ abstract class BaseModule {
     bind(dataShapes = trainData.provideData, labelShapes = Option(trainData.provideLabel),
          forTraining = true, forceRebind = fitParams.forceRebind)
     fitParams.monitor.foreach(installMonitor)
-    initParams(fitParams.initializer, argParams, auxParams,
+    initParams(fitParams.initializer, fitParams.argParams, fitParams.auxParams,
       fitParams.allowMissing, fitParams.forceInit)
     initOptimizer(fitParams.kvstore, fitParams.optimizer)
 

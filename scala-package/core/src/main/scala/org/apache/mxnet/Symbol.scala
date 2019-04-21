@@ -455,10 +455,6 @@ class Symbol private(private[mxnet] val handle: SymbolHandle) extends WarnIfNotD
                    sharedArgNames: IndexedSeq[String],
                    sharedExec: Executor, sharedBuffer: Map[String, NDArray])
   : Executor = {
-    if (sharedArgNames != null){
-      println(sharedArgNames.mkString(","))
-    }
-
     var numProvidedArgDTypes = 0
     val providedArgDTypeNames = ArrayBuffer.empty[String]
     val providedArgDTypeData = ArrayBuffer.empty[Int]
@@ -537,7 +533,7 @@ class Symbol private(private[mxnet] val handle: SymbolHandle) extends WarnIfNotD
 
     // to do
 
-    val sharedBufferLen = new RefInt(-1)
+    val sharedBufferLen = new RefInt(0)
     val sharedBufferNames = ArrayBuffer.empty[String]
     val sharedBufferHandles = ArrayBuffer.empty[NDArrayHandle]
 

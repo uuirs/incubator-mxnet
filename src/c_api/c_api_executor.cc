@@ -30,7 +30,7 @@
 #if MXNET_USE_TENSORRT
 #include "../executor/trt_graph_executor.h"
 #endif  // MXNET_USE_TENSORRT
-
+#include <iostream>
 int MXExecutorPrint(ExecutorHandle handle, const char **out_str) {
   Executor *exec = static_cast<Executor*>(handle);
   MXAPIThreadLocalEntry *ret = MXAPIThreadLocalStore::Get();
@@ -265,7 +265,7 @@ int MXExecutorSimpleBind(SymbolHandle symbol_handle,
 
   // attr_dict for setting up type_dict and arg/aux ctx
   std::unordered_map<std::string, std::unordered_map<std::string, std::string>> attr_dict;
-  if (nullptr == provided_arg_dtypes || nullptr != g2c_keys || nullptr == provided_arg_stypes) {
+  if (0  == num_provided_arg_dtypes || 0 != num_g2c_keys || 0 == num_provided_arg_stypes) {
     std::vector<std::tuple<std::string, std::string, std::string>> attrs =
       sym->ListAttrsRecursive();
     attr_dict.reserve(attrs.size());
@@ -276,7 +276,7 @@ int MXExecutorSimpleBind(SymbolHandle symbol_handle,
 
   // setup arg_dtype_map
   std::unordered_map<std::string, int> arg_dtype_map;
-  if (nullptr == provided_arg_dtypes) {  // use attr_dict
+  if (0 == num_provided_arg_dtypes) {  // use attr_dict
     for (const auto& arg_name : in_arg_names) {
       const auto it = attr_dict.find(arg_name);
       if (it == attr_dict.end() || !it->second.count("__dtype__")) {
@@ -293,7 +293,7 @@ int MXExecutorSimpleBind(SymbolHandle symbol_handle,
 
   // setup arg_stype_map
   std::unordered_map<std::string, int> arg_stype_map;
-  if (nullptr == provided_arg_stypes) {  // use attr_dict
+  if (0 == num_provided_arg_stypes) {  // use attr_dict
     for (const auto& arg_name : in_arg_names) {
       const auto it = attr_dict.find(arg_name);
       if (it == attr_dict.end() || !it->second.count("__storage_type__")) {
@@ -314,7 +314,7 @@ int MXExecutorSimpleBind(SymbolHandle symbol_handle,
   std::map<std::string, Context> ctx_map;
   std::vector<Context> in_arg_ctx_vec(in_arg_names.size(), ctx);
   std::vector<Context> aux_state_ctx_vec(aux_state_names.size(), ctx);
-  if (nullptr != g2c_keys) {  // use user input group2ctx dict
+  if (0 != num_g2c_keys) {  // use user input group2ctx dict
     for (mx_uint i = 0; i < num_g2c_keys; ++i) {
       ctx_map[g2c_keys[i]] = Context::Create(
           static_cast<Context::DeviceType>(g2c_dev_types[i]), g2c_dev_ids[i]);
