@@ -53,10 +53,10 @@ object MnistMlp {
       logger.info("Load checkpoint from epoch {}", loadModelEpoch)
       Module.loadCheckpoint("model/mnist_mlp", loadModelEpoch, loadOptimizerStates = true)
     }
-    print(train.provideData.toArray.map(_.toString()).mkString("###"))
-    print("\n")
-    print(train.provideLabel.toArray.map(_.toString()).mkString("###"))
-    print("\n")
+    //print(train.provideData.toArray.map(_.toString()).mkString("###"))
+    //print("\n")
+    //print(train.provideLabel.toArray.map(_.toString()).mkString("###"))
+    //print("\n")
 
     mod.bind(dataShapes = train.provideData, labelShapes = Some(train.provideLabel))
     mod.initParams()
@@ -67,16 +67,16 @@ object MnistMlp {
     for (epoch <- 0 until cmdLine.numEpoch) {
       while (train.hasNext) {
         val batch = train.next()
-        print("\ndata:")
-        batch.data.map{ e => (print(e.asInstanceOf[CSRNDArray].data.toArray.mkString(",")))}
-        print("\nindices")
-        batch.data.map{ e => (print(e.asInstanceOf[CSRNDArray].indices.toArray.mkString(",")))}
-        print("\nindptr")
-        batch.data.map{ e => (print(e.asInstanceOf[CSRNDArray].indptr.toArray.mkString(",")))}
+        //print("\ndata:")
+        //batch.data.map{ e => (print(e.asInstanceOf[CSRNDArray].data.toArray.mkString(",")))}
+        //print("\nindices")
+        //batch.data.map{ e => (print(e.asInstanceOf[CSRNDArray].indices.toArray.mkString(",")))}
+        //print("\nindptr")
+        //batch.data.map{ e => (print(e.asInstanceOf[CSRNDArray].indptr.toArray.mkString(",")))}
 
-        print("\noutlabel")
-        print(batch.label.toArray.map(_.toArray.mkString(",")).mkString("#"))
-        print("\n")
+        //print("\noutlabel")
+        //print(batch.label.toArray.map(_.toArray.mkString(",")).mkString("#"))
+        //print("\n")
         mod.forward(batch)
         mod.updateMetric(metric, batch.label)
         mod.backward()
@@ -128,6 +128,8 @@ object MnistMlp {
     var i = 0
     while (test.hasNext) {
       val batch = test.next()
+      print(preds(i)(0).shape.toString)
+      print(preds(i)(0).toArray.mkString(","))
       val predLabel: Array[Int] = NDArray.argmax_channel(preds(i)(0)).toArray.map(_.toInt)
       val label = batch.label(0).toArray.map(_.toInt)
       accSum += (predLabel zip label).map { case (py, y) =>
@@ -182,7 +184,7 @@ object MnistMlp {
       logger.info("Run intermediate level api, start with last trained epoch.")
       runIntermediateLevelApi(train, eval, inst, loadModelEpoch = inst.numEpoch - 1)
       logger.info("Run high level api")
-      // runHighLevelApi(train, eval, inst)
+      runHighLevelApi(train, eval, inst)
     } catch {
       case ex: Exception =>
         logger.error(ex.getMessage, ex)
