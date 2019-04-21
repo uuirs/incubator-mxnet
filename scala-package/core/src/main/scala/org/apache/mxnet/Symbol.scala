@@ -455,6 +455,9 @@ class Symbol private(private[mxnet] val handle: SymbolHandle) extends WarnIfNotD
                    sharedArgNames: IndexedSeq[String],
                    sharedExec: Executor, sharedBuffer: Map[String, NDArray])
   : Executor = {
+    if (sharedArgNames != null){
+      println(sharedArgNames.mkString(","))
+    }
 
     var numProvidedArgDTypes = 0
     val providedArgDTypeNames = ArrayBuffer.empty[String]
@@ -528,6 +531,9 @@ class Symbol private(private[mxnet] val handle: SymbolHandle) extends WarnIfNotD
 
 
     val sharedArgNameList = ArrayBuffer.empty[String]
+    if (sharedArgNames != null){
+      sharedArgNameList ++= sharedArgNames
+    }
 
     // to do
 

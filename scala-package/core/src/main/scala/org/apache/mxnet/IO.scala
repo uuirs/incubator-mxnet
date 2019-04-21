@@ -41,6 +41,8 @@ object IO {
 
   def CSVIter: IterCreateFunc = iterCreateFuncs("CSVIter")
 
+  def LibSVMIter: IterCreateFunc = iterCreateFuncs("LibSVMIter")
+
   def MNISTPack: PackCreateFunc = createMXDataPack("MNISTIter")
 
   def ImageRecodePack: PackCreateFunc = createMXDataPack("ImageRecordIter")
