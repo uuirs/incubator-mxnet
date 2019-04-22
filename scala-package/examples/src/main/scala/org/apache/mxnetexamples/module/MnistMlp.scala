@@ -30,13 +30,17 @@ object MnistMlp {
   private val logger = LoggerFactory.getLogger(classOf[MnistMlp])
 
   def getSymbol: Symbol = {
-    val data = Symbol.Variable("data")
-    val fc1 = Symbol.FullyConnected(name = "fc1")(data)(Map("num_hidden" -> 128))
-    val act1 = Symbol.Activation(name = "relu1")(fc1)(Map("act_type" -> "relu"))
-    val fc2 = Symbol.FullyConnected(name = "fc2")(act1)(Map("num_hidden" -> 64))
-    val act2 = Symbol.Activation(name = "relu2")(fc2)(Map("act_type" -> "relu"))
-    val fc3 = Symbol.FullyConnected(name = "fc3")(act2)(Map("num_hidden" -> 10))
-    val softmax = Symbol.SoftmaxOutput(name = "softmax")(fc3)()
+    val data = Symbol.Variable("data", sType = SType.CSR)
+    val label = Symbol.Variable("softmax_label")
+    val W = Symbol.Variable("1st_weight", shape = Shape(800, 128))
+    val b = Symbol.Variable("1st_bias", shape = Shape(128))
+    // val fc1 = Symbol.api._sparse_FullyConnected(Some(data), num_hidden = 128)
+    val fc1 = Symbol.api.broadcast_add(Some(Symbol.api._sparse_dot(Some(data), Some(W))), Some(b))
+    val act1 = Symbol.api.Activation(Some(fc1), act_type = "relu")
+    val fc2 = Symbol.api.FullyConnected(Some(act1), num_hidden = 64)
+    val act2 = Symbol.api.Activation(Some(fc2), act_type = "relu")
+    val fc3 = Symbol.api.FullyConnected(Some(act2), num_hidden = 10)
+    val softmax = Symbol.api.SoftmaxOutput(Some(fc3), Some(label))
     softmax
   }
 
@@ -49,15 +53,30 @@ object MnistMlp {
       logger.info("Load checkpoint from epoch {}", loadModelEpoch)
       Module.loadCheckpoint("model/mnist_mlp", loadModelEpoch, loadOptimizerStates = true)
     }
+    print(train.provideData.toArray.map(_.toString()).mkString("###"))
+    print("\n")
+    print(train.provideLabel.toArray.map(_.toString()).mkString("###"))
+    print("\n")
+
     mod.bind(dataShapes = train.provideData, labelShapes = Some(train.provideLabel))
     mod.initParams()
-    mod.initOptimizer(optimizer = new SGD(learningRate = 0.01f, momentum = 0.9f))
+    mod.initOptimizer(optimizer = new SGD(learningRate = 0.1f, momentum = 0.9f))
 
     val metric = new Accuracy()
 
     for (epoch <- 0 until cmdLine.numEpoch) {
       while (train.hasNext) {
         val batch = train.next()
+        print("\ndata:")
+        batch.data.map{ e => (print(e.asInstanceOf[CSRNDArray].data.toArray.mkString(",")))}
+        print("\nindices")
+        batch.data.map{ e => (print(e.asInstanceOf[CSRNDArray].indices.toArray.mkString(",")))}
+        print("\nindptr")
+        batch.data.map{ e => (print(e.asInstanceOf[CSRNDArray].indptr.toArray.mkString(",")))}
+
+        print("\noutlabel")
+        print(batch.label.toArray.map(_.toArray.mkString(",")).mkString("#"))
+        print("\n")
         mod.forward(batch)
         mod.updateMetric(metric, batch.label)
         mod.backward()
@@ -129,7 +148,7 @@ object MnistMlp {
     val parser = new CmdLineParser(inst)
     try {
       parser.parseArgument(args.toList.asJava)
-
+      /*
       val train = IO.MNISTIter(Map(
         "image" -> (inst.dataDir + "train-images-idx3-ubyte"),
         "label" -> (inst.dataDir + "train-labels-idx1-ubyte"),
@@ -145,13 +164,25 @@ object MnistMlp {
         "input_shape" -> "(784,)",
         "batch_size" -> inst.batchSize.toString,
         "flat" -> "True", "silent" -> "False"))
-
+      */
+      val train = IO.LibSVMIter(Map(
+        "data_libsvm" -> "mnist",
+        "data_shape" -> "(800,)",
+        "label_name" -> "softmax_label",
+        "silent" -> "False",
+        "shuffle" -> "False",
+        "batch_size" -> inst.batchSize.toString))
+      val eval = IO.LibSVMIter(Map(
+        "data_libsvm" -> "mnist_val",
+        "label_name" -> "softmax_label",
+        "data_shape" -> "(800,)",
+        "batch_size" -> inst.batchSize.toString))
       logger.info("Run intermediate level api from beginning.")
       runIntermediateLevelApi(train, eval, inst)
       logger.info("Run intermediate level api, start with last trained epoch.")
       runIntermediateLevelApi(train, eval, inst, loadModelEpoch = inst.numEpoch - 1)
       logger.info("Run high level api")
-      runHighLevelApi(train, eval, inst)
+      // runHighLevelApi(train, eval, inst)
     } catch {
       case ex: Exception =>
         logger.error(ex.getMessage, ex)

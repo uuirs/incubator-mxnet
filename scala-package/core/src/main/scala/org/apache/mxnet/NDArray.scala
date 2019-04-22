@@ -106,7 +106,7 @@ object NDArray extends NDArrayBase {
     checkCall(_LIB.mxImperativeInvoke(function.handle, ndArgs.map(_.handle).toArray, outputVars,
       outputs, updatedKwargs.size, updatedKwargs.keys.toArray, updatedKwargs.values.toArray))
     new NDArrayFuncReturn(Option(oriOutputs).getOrElse {
-      val outputArrs = outputs.map(new NDArray(_)).toArray
+      val outputArrs = outputs.map(NDArray.cls(_)).toArray
       addDependency(ndArgs.toArray, outputArrs)
       outputArrs
     })
@@ -152,6 +152,21 @@ object NDArray extends NDArrayBase {
    */
   def waitall(): Unit = {
     checkCall(_LIB.mxNDArrayWaitAll())
+  }
+
+  def cls(handle: NDArrayHandle, writable: Boolean = true,
+          addToCollector: Boolean = true): NDArray = {
+    val mxStype = new RefInt
+    if (handle == 0) {
+      return new NDArray(handle, writable, addToCollector)
+    }
+    checkCall(_LIB.mxNDArrayGetSType(handle, mxStype))
+    val sType = SType(mxStype.value)
+    if (sType == SType.ROW_SPARSE) return new RowSparseNDArray(handle, writable, addToCollector)
+    else if (sType == SType.CSR) return new CSRNDArray(handle, writable, addToCollector)
+    else {
+      return new NDArray(handle, writable, addToCollector)
+    }
   }
 
   // List and add all the atomic symbol functions to current module.
@@ -397,7 +412,7 @@ object NDArray extends NDArrayBase {
   }
 
   def array(sourceArr: Array[Long], shape: Shape, ctx: Context): NDArray = {
-    val arr = empty(shape, ctx,DType.Int64)
+    val arr = empty(shape, ctx, DType.Int64)
     arr.set(sourceArr)
     arr
   }
@@ -501,7 +516,7 @@ object NDArray extends NDArrayBase {
     val names = ArrayBuffer.empty[String]
     checkCall(_LIB.mxNDArrayLoad(fname, outSize, handles, outNameSize, names))
     require(outNameSize.value == 0 || outNameSize.value == outSize.value)
-    (names.toArray, handles.map(new NDArray(_)).toArray)
+    (names.toArray, handles.map(NDArray.cls(_)).toArray)
   }
 
   def load2Map(fname: String): Map[String, NDArray] = {
@@ -547,7 +562,7 @@ object NDArray extends NDArrayBase {
   def deserialize(bytes: Array[Byte]): NDArray = {
     val handleRef = new NDArrayHandleRef
     checkCall(_LIB.mxNDArrayLoadFromRawBytes(bytes, handleRef))
-    new NDArray(handleRef.value)
+    NDArray.cls(handleRef.value)
   }
 
   private def _crop_assign(kwargs: Map[String, Any] = null)(args: Any*) : NDArrayFuncReturn = {
@@ -659,7 +674,7 @@ class NDArray private[mxnet](private[mxnet] val handle: NDArrayHandle,
   def slice(start: Int, stop: Int): NDArray = {
     val sliceHandle = new NDArrayHandleRef
     checkCall(_LIB.mxNDArraySlice(handle, start, stop, sliceHandle))
-    new NDArray(handle = sliceHandle.value, writable = this.writable)
+    NDArray.cls(handle = sliceHandle.value, writable = this.writable)
   }
 
   def slice(range: (Int, Int)): NDArray = {
@@ -683,7 +698,7 @@ class NDArray private[mxnet](private[mxnet] val handle: NDArrayHandle,
   def at(idx: Int): NDArray = {
     val handleRef = new NDArrayHandleRef()
     checkCall(_LIB.mxNDArrayAt(this.handle, idx, handleRef))
-    new NDArray(handle = handleRef.value, writable = this.writable)
+    NDArray.cls(handle = handleRef.value, writable = this.writable)
   }
 
   // Get transpose of current NDArray
@@ -733,7 +748,7 @@ class NDArray private[mxnet](private[mxnet] val handle: NDArrayHandle,
   def reshape(dims: Array[Int]): NDArray = {
     val reshapeHandle = new NDArrayHandleRef
     checkCall(_LIB.mxNDArrayReshape(handle, dims.length, dims, reshapeHandle))
-    new NDArray(handle = reshapeHandle.value, writable = this.writable)
+    NDArray.cls(handle = reshapeHandle.value, writable = this.writable)
   }
 
   /**
@@ -1016,7 +1031,7 @@ class NDArray private[mxnet](private[mxnet] val handle: NDArrayHandle,
    * @return The copy target NDArray
    */
   def copyTo(ctx: Context): NDArray = {
-    val ret = new NDArray(NDArray.newAllocHandle(shape, ctx, delayAlloc = true))
+    val ret = NDArray.cls(NDArray.newAllocHandle(shape, ctx, delayAlloc = true))
     copyTo(ret)
   }
 

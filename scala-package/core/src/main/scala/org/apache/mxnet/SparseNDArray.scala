@@ -69,15 +69,17 @@ object BaseSparseNDArray {
     hdl.value
   }
 
-  def empty(stype: SType, shape: Shape, ctx: Context, delayAlloc: Boolean = false, dtype: DType = DType.Float32,
+
+  def empty(stype: SType, shape: Shape, ctx: Context,
+            delayAlloc: Boolean = false, dtype: DType = DType.Float32,
             auxTypes: List[DType], auxShape: List[Shape] = null): NDArray = {
-    new NDArray(handle = newAllocHandle(stype, shape, ctx, delayAlloc, dtype,
+    NDArray.cls(handle = newAllocHandle(stype, shape, ctx, delayAlloc, dtype,
       auxTypes, auxShape))
   }
 
 }
 
-class BaseSparseNDArray private[mxnet](private[mxnet] override val handle: NDArrayHandle,
+class BaseSparseNDArray (override val handle: NDArrayHandle,
                                        override val writable: Boolean = true,
                              addToCollector: Boolean = true) extends NDArray(handle, writable, addToCollector) with WarnIfNotDisposed {
 
@@ -139,7 +141,7 @@ class BaseSparseNDArray private[mxnet](private[mxnet] override val handle: NDArr
     waitToRead()
     val hdl = new NDArrayHandleRef
     checkCall(_LIB.mxNDArrayGetDataNDArray(this.handle, hdl))
-    new NDArray(hdl.value)
+    NDArray.cls(hdl.value)
   }
 
   def auxData(i: Int): NDArray = {
@@ -182,11 +184,12 @@ class BaseSparseNDArray private[mxnet](private[mxnet] override val handle: NDArr
     throw new UnsupportedOperationException()
   }
 
+  /*
   override def +(other: NDArray): NDArray = {
     throw new UnsupportedOperationException()  }
 
-  override def +(other: Float): NDArray = {
-    throw new UnsupportedOperationException()  }
+  // override def +(other: Float): NDArray = {
+  //  throw new UnsupportedOperationException()  }
 
   override def +=(other: NDArray): NDArray = {
     throw new UnsupportedOperationException()
@@ -246,7 +249,7 @@ class BaseSparseNDArray private[mxnet](private[mxnet] override val handle: NDArr
   override def /=(other: Float): NDArray = {
     throw new UnsupportedOperationException()
   }
-
+  */
   override def **(other: NDArray): NDArray = {
     throw new UnsupportedOperationException()
   }
@@ -396,7 +399,7 @@ object CSRNDArray {
   }
 }
 
-class CSRNDArray private[mxnet](private[mxnet] override val handle: NDArrayHandle,
+class CSRNDArray (override val handle: NDArrayHandle,
                                                         override val writable: Boolean = true,
                                                         addToCollector: Boolean = true) extends BaseSparseNDArray(handle, writable, addToCollector) with WarnIfNotDisposed {
 
@@ -431,7 +434,7 @@ object RowSparseNDArray {
   }
 }
 
-class RowSparseNDArray private[mxnet](private[mxnet] override val handle: NDArrayHandle,
+class RowSparseNDArray (override val handle: NDArrayHandle,
                                       override val writable: Boolean = true,
                                       addToCollector: Boolean = true) extends BaseSparseNDArray(handle, writable, addToCollector) with WarnIfNotDisposed {
 

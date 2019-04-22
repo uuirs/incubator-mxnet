@@ -450,7 +450,7 @@ class Symbol private(private[mxnet] val handle: SymbolHandle) extends WarnIfNotD
 
   def simpleBindEX(ctx: Context, gradReq: Any,
                    shapeDict: Map[String, Shape],
-                   dTypeDict: Map[String, DType], sTypeDict: Map[String,SType] = null,
+                   dTypeDict: Map[String, DType], sTypeDict: Map[String, SType] = null,
                    group2ctx: Map[String, Context],
                    sharedArgNames: IndexedSeq[String],
                    sharedExec: Executor, sharedBuffer: Map[String, NDArray])
@@ -570,9 +570,9 @@ class Symbol private(private[mxnet] val handle: SymbolHandle) extends WarnIfNotD
       execHandle
       ))
     val executor = new Executor(execHandle.value, this.clone())
-    executor.argArrays = inArgHandles.toArray.map(new NDArray(_, addToCollector = false))
-    executor.gradArrays = argGradHandles.toArray.map(new NDArray(_, addToCollector = false))
-    executor.auxArrays = auxStateHandles.toArray.map(new NDArray(_, addToCollector = false))
+    executor.argArrays = inArgHandles.toArray.map(NDArray.cls(_, addToCollector = false))
+    executor.gradArrays = argGradHandles.toArray.map(NDArray.cls(_, addToCollector = false))
+    executor.auxArrays = auxStateHandles.toArray.map(NDArray.cls(_, addToCollector = false))
 
     executor._ctx = new Context(ctx.deviceType, ctx.deviceId)
     executor._gradsReq = providedGradReqTypes

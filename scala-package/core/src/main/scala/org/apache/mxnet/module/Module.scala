@@ -127,16 +127,19 @@ class Module(symbolVar: Symbol,
     require(binded, "call bind before initializing the parameters")
 
     if (this.argParams == null) {
-      val paramArrays =
-        execGroup.paramArrays.map(nds => NDArray.zeros(nds(0).shape, dtype = nds(0).dtype))
+      val paramArrays = ArrayBuffer.empty[NDArray]
+        execGroup.paramArrays.map(nds => paramArrays += NDArray.api.zeros_like(nds(0)))
       this.argParams = this.paramNames.zip(paramArrays).toMap
     }
 
     if (this.auxParams == null) {
-      val auxArrays =
-        execGroup.auxArrays.map(nds => NDArray.zeros(nds(0).shape, dtype = nds(0).dtype))
+      val auxArrays = ArrayBuffer.empty[NDArray]
+        execGroup.auxArrays.map(nds => auxArrays += NDArray.api.zeros_like(nds(0)))
       this.auxParams = this.auxNames.zip(auxArrays).toMap
     }
+    print("argParams:")
+    print(this.argParams.keys.mkString("###"))
+    print("\n")
 
     this.argParams.foreach { case (name, arr) =>
       impl(name, arr, allowMissing, Option(initializer), argParams)
@@ -302,6 +305,8 @@ class Module(symbolVar: Symbol,
       for (x <- execGroup.paramArrays) {
         paramArr += NDArray.api.zeros_like(x(0))
       }
+      print("\nparamArr")
+      print(paramArr.toArray.map(_.stype.toString).mkString(","))
       argParams = paramNames.zip(paramArr).toMap
 
       val auxArr = ArrayBuffer.empty[NDArray]
@@ -309,6 +314,8 @@ class Module(symbolVar: Symbol,
       for (x <- execGroup.auxArrays) {
         auxArr += NDArray.api.zeros_like(x(0))
       }
+      print("\nauxArr")
+      print(auxArr.toArray.map(_.stype.toString).mkString(","))
       auxParams = auxNames.zip(auxArr).toMap
         /*
       val param_arrays = [

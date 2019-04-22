@@ -387,6 +387,7 @@ class DataParallelExecutorGroup private[module](
       this.execs.zipWithIndex.map { case (e, i) => (this.slices(i), e.argDict(dataDesc.name)) }
     )
 
+    this.execs.map{ case (e) => print(e.argDict.keys.mkString("###"))}
     labelArrays = labelShapes.map(shapes =>
       shapes.map(labelDesc =>
         this.execs.zipWithIndex.map { case (e, i) => (this.slices(i), e.argDict(labelDesc.name)) }
@@ -606,7 +607,12 @@ class DataParallelExecutorGroup private[module](
             label
           }
         }
-
+      print("\n")
+      print("label:")
+      print(labelsSlice.toArray.map(_.toArray.mkString(",")).mkString("#"))
+      print("\n")
+      print("predict:")
+      print(texec.outputs.map(_.toArray.mkString((","))).mkString("#"))
       evalMetric.update(labelsSlice, texec.outputs)
 
       // Clear up any slices we created (sometimes we don't slice so check for this)
@@ -716,8 +722,9 @@ class DataParallelExecutorGroup private[module](
     val argArrays = ArrayBuffer.empty[NDArray]
     val gradArrayMap = mutable.HashMap.empty[String, NDArray]
 
-    symbol.simpleBindEX(ctx = context, gradReq = gradReqRun, shapeDict = inputShapes, dTypeDict = inputTypesGot,
-      sTypeDict = null, sharedArgNames = argNames, sharedBuffer = sharedDataArrays.toMap,
+    symbol.simpleBindEX(ctx = context, gradReq = gradReqRun, shapeDict = inputShapes,
+      dTypeDict = inputTypesGot, sTypeDict = null, sharedArgNames = argNames,
+      sharedBuffer = sharedDataArrays.toMap,
       group2ctx = null, sharedExec = sharedExec.orNull)
   }
   /**

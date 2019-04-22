@@ -24,5 +24,5 @@ mkdir -p model
 java -Xmx4G -cp $CLASSPATH \
 	org.apache.mxnetexamples.module.MnistMlp \
   --data-dir "$ROOT_DIR/core/data/" \
-  --batch-size 32 \
+  --batch-size 64\
   --num-epoch 5

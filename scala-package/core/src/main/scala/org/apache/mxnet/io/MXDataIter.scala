@@ -129,7 +129,7 @@ private[mxnet] class MXDataIter(private[mxnet] val handle: DataIterHandle,
   override def getData(): IndexedSeq[NDArray] = {
     val out = new NDArrayHandleRef
     checkCall(_LIB.mxDataIterGetData(handle, out))
-    IndexedSeq(new NDArray(out.value, writable = false))
+    IndexedSeq(NDArray.cls(out.value, writable = false))
   }
 
   /**
@@ -139,7 +139,7 @@ private[mxnet] class MXDataIter(private[mxnet] val handle: DataIterHandle,
   override def getLabel(): IndexedSeq[NDArray] = {
     val out = new NDArrayHandleRef
     checkCall(_LIB.mxDataIterGetLabel(handle, out))
-    IndexedSeq(new NDArray(out.value, writable = false))
+    IndexedSeq(NDArray.cls(out.value, writable = false))
   }
 
   /**
